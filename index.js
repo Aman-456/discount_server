@@ -53,19 +53,15 @@ app.use(bodyparser.urlencoded({ extended: true }));
 app.use("/assets", express.static("assets"));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/blog", blog.routes);
 app.use("/customer", customer.routes);
 app.use("/vendor", vendor.routes);
 app.use("/item", item.routes);
 app.use("/admin", admin.routes);
-app.use("/event", event.routes);
 app.use("/order", order.routes);
 app.use("/notification", notification.routes);
 app.use("/chat", chat.routes);
-app.use("/job", job.routes);
 app.use("/application", application.routes);
 app.use("/messagebird", messagebird.routes);
-app.use("/rider", rider.routes);
 
 app.get("/test1", (req, res) => {
     for (i = 0; i < 300; i++) {
@@ -140,96 +136,6 @@ app.get("/test2/", async (req, res) => {
             },
         },
     ]);
-    // const monthly = await OrderModal.aggregate([
-    //   {
-    //     $project: {
-    //       month: { $month: "$createdAt" },
-    //       year: { $year: "$createdAt" },
-    //       createdDate: 1,
-    //       _id: 0,
-    //       total: 1,
-    //     },
-    //   },
-    //   {
-    //     $match: {
-    //       createdDate: {
-    //         $gte: new Date(new Date().getTime() - 365 * 24 * 60 * 60 * 1000),
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       _id: { $month: "$createdAt" },
-    //       total: { $sum: "$total" },
-    //       year: { $first: "$year" },
-    //     },
-    //   },
-    //   {
-    //     $sort: {
-    //       year: 1,
-    //       _id: 1,
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       _id: null,
-    //       months: { $push: "$_id" },
-    //       totals: { $push: "$total" },
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 0,
-    //     },
-    //   },
-    // ]);
-    // const daily = await Order.aggregate([
-    //   {
-    //     $project: {
-    //       day: { $dayOfMonth: "$createdDate" },
-    //       month: { $month: "$createdDate" },
-    //       year: { $year: "$createdDate" },
-    //       createdDate: 1,
-    //       _id: 0,
-    //       total: 1,
-    //     },
-    //   },
-    //   {
-    //     $match: {
-    //       createdDate: {
-    //         $gte: new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000),
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       _id: { $dayOfMonth: "$createdDate" },
-    //       total: { $sum: "$total" },
-    //       year: { $first: "$year" },
-    //       month: { $first: "$month" },
-    //     },
-    //   },
-    //   {
-    //     $sort: {
-    //       year: 1,
-    //       month: 1,
-    //       _id: 1,
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       _id: null,
-    //       days: { $push: "$_id" },
-    //       totals: { $push: "$total" },
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 0,
-    //     },
-    //   },
-    // ]);
-
     const daily = await OrderModal.aggregate([
         {
             $match: {
@@ -381,61 +287,6 @@ app.get("/test2/", async (req, res) => {
         },
     ]);
 
-    // const items = await OrderModal.aggregate([
-    //   { $unwind: "$items" },
-    //   {
-    //     $lookup: {
-    //       from: "items",
-    //       localField: "items.item",
-    //       foreignField: "_id",
-    //       as: "item2",
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 1,
-    //       vendor: 1,
-    //       city: 1,
-    //       item: "$item2.name",
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       _id: {
-    //         type: "$type",
-    //         item: "$item",
-    //       },
-    //       count: {
-    //         $sum: 1,
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       _id: "$_id.type",
-    //       categoryCounts: {
-    //         $push: {
-    //           category: "$_id.item",
-    //           count: "$count",
-    //         },
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 0,
-    //       location: "$_id",
-    //       categoryCounts: 1,
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       _id: "$location",
-    //       counts: { $push: "$categoryCounts.count" },
-    //       categories: { $push: "$categoryCounts.category" },
-    //     },
-    //   },
-    // ]);
     console.log(items);
 
     res.status(200).json({
@@ -459,42 +310,10 @@ app.get("/test2/", async (req, res) => {
     });
 });
 
-app.get("/test", (req, res) => {
-    // let orders = [];
-    // for (let i = 0; i < 20; i++) {
-    //     orders.push({
-    //         orderNumber: i,
-    //         date: faker.date.between(new Date("2020-10-01"), new Date("2021,3,31")),
-    //         name: faker.name.firstName() + " " + faker.name.lastName(),
-    //         total: faker.random.number(999),
-    //         status: faker.random.boolean()
-    //     });
-    // }
-    // res.send(orders);
-});
-
-app.use(express.static(path.join(__dirname, "public")));
-
-app.use((req, res) => {
-    res.sendFile(path.join(__dirname, "public/index.html"));
-});
-
-// var https = require("https");
-// var fs = require("fs");
-// var privateKey = fs.readFileSync("sslcert/inuaeats_com.key", "utf8");
-// var certificate = fs.readFileSync("sslcert/inuaeats_com.crt", "utf8");
-// var ca = fs.readFileSync("sslcert/intermediate_inuaeats.cer", "utf8");
-
-// var credentials = { key: privateKey, cert: certificate };
-// var https_Server = https.createServer(credentials, app);
-// server = https_Server.listen(port, host, () => {
-//   console.log("Running Server at https://" + host + ":" + port);
-// });
 
 server = app.listen(port, host, () => {
     console.log("Running Server at http://" + host + ":" + port);
 });
 
 let io = socket(server);
-
 MySocket(io);
