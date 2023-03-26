@@ -75,24 +75,6 @@ exports.SendInvoice = async (req, res) => {
       .populate("vendor")
       .populate("job");
 
-    //Comment on get applications status
-    // const customer = await Stripe.AddCustomer(
-    //   application.vendor.name,
-    //   application.vendor.email,
-    //   application.job.address,
-    //   application.vendor.phone
-    // );
-    // const invoice = await Stripe.CreateInvoice(
-    //   100,
-    //   "usd",
-    //   customer.id,
-    //   application.vendor.name
-    // );
-    // const invoiceDetails = await Stripe.GetInvoice(invoice.id);
-    // await Application.updateOne(
-    //   { _id: application._id },
-    //   { $set: { invoice: invoiceDetails } }
-    // );
     const applications = await Application.find({
       vendor: application.vendor._id,
     })

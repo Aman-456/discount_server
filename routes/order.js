@@ -13,7 +13,6 @@ const router = express.Router();
 router.post("/stripe", stripeController.StripePayment);
 router.get("/getOrder", orderController.GetOrder);
 router.get("/getallOrders", orderController.GetAllOrder);
-router.get("/getOrdersByVendor", orderController.GetOrdersByVendorForMobile);
 router.get("/getOrdersByVendorW", orderController.GetOrdersByVendorForWebsite);
 router.get("/getVendorByEarning", orderController.GetVendorByEarning);
 router.get("/getUserOrders", orderController.GetUserOrders);

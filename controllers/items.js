@@ -223,9 +223,3 @@ exports.UpdateItemWithoutImage = async (req, res) => {
       .json({ type: "failure", result: "Server not Responding. Try Again" });
   }
 };
-exports.TestItem = async (req, res) => {
-  await Customer.updateMany({}, { $set: { hide: false } });
-  res
-    .status(200)
-    .json({ type: "success", result: "Item Updated Successfully" });
-};

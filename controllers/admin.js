@@ -80,10 +80,8 @@ exports.Dashboard = async (req, res) => {
   try {
     var TotalOrders = await Order.find({}).count();
     var TotalVendors = await Vendor.find({}).count();
-    var TotalJobs = await Job.find({}).count();
     console.log("Total Orders :" + TotalOrders);
     console.log("Total Vendors :" + TotalVendors);
-    console.log("Total Jobs :" + TotalJobs);
     res
       .status(200)
       .json({ type: "success", result: "Admin Registered Successfully" });

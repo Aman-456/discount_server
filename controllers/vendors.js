@@ -2,17 +2,14 @@ const { validationResult } = require("express-validator");
 const Vendor = require("../models/vendor");
 const Admin = require("../models/admin");
 const OrderModal = require("../models/orders");
-const EventVendors = require("../models/eventVendors");
 const mongoose = require("mongoose");
 const JWT = require("jsonwebtoken");
 const fs = require("fs");
 require("dotenv").config();
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
-var QRCode = require("qrcode");
 const nodemailer = require("nodemailer");
 const { AdminEmail } = require("./functions/Email");
 const { sendOTP } = require("./functions/OtpEmail");
-const otpGenerator = require("otp-generator");
 // const { AddCustomer } = require("./../externals/stripe");
 
 exports.Signup = async (req, res) => {
@@ -45,37 +42,11 @@ exports.Signup = async (req, res) => {
     vendor.banner = "assets/vendors/banner.jpg";
     vendor.dimension = { width: 0, height: 0, length: 0 };
     vendor.documents = [];
-    // const stripeCustomer = await AddCustomer(customer.name, customer.email, "", customer.phone, "");
-    // customer.stripeId = stripeCustomer.id;
-    var dir = "assets/vendors/" + vendor._id;
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
-    }
-    const path = `assets/qrcode/${vendor._id}.png`;
 
-    //file exists
-    QRCode.toFile(path, [{ data: `${vendor._id}` }]).then(async () => {
-      vendor.qrcode = path;
-
-      vendor.save(async (doc, err) => {
-        if (doc && doc.code === 11000) {
-          fs.rmdirSync(dir);
-          const keyName = Object.keys(doc.keyValue)[0];
-          res.json({
-            type: "failure",
-            result:
-              keyName.charAt(0).toUpperCase() +
-              keyName.slice(1) +
-              " already Exist",
-          });
-        } else {
-          await AdminEmail(vendor, "Sign up");
-          res.status(200).json({
-            type: "success",
-            result: "You have successfully signed up",
-          });
-        }
-      });
+    await AdminEmail(vendor, "Sign up");
+    res.status(200).json({
+      type: "success",
+      result: "You have successfully signed up",
     });
   } catch (error) {
     res
@@ -199,51 +170,7 @@ exports.GetNearByVendors = async (req, res) => {
       .json({ type: "failure", result: "Server not Responding. Try Again" });
   }
 };
-exports.QRSignin = async (req, res) => {
-  try {
-    var vendor = await Vendor.findOne(
-      { email: req.body.email },
-      "name password completeStatus block admin status hide"
-    );
-    console.log(vendor);
-    if (!vendor) {
-      res.json({ type: "failure", result: "No User With Such Email Exists" });
-    } else {
-      if (vendor.hide) {
-        return res.json({
-          type: "block",
-          result:
-            "Vendor has been deleted by admin contact info@inuaeats.com for further information",
-        });
-      }
-      if (vendor.block) {
-        return res.json({
-          type: "block",
-          result: "Vendor has been blocked by admin",
-        });
-      }
 
-      const token = await JWT.sign({ username: vendor.name }, JWT_SECRET_KEY);
-      if (req.body.fromMobile === "true") {
-        await Vendor.findByIdAndUpdate(vendor._id, {
-          $set: { fcmToken: req.query.fcmToken },
-        });
-      }
-      res.status(200).json({
-        type: "success",
-        result: "Vendor Login Successfully",
-        token: token,
-        id: vendor._id,
-        completeStatus: vendor.completeStatus,
-      });
-    }
-  } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
-  }
-};
 exports.GetPendingVendors = async (req, res) => {
   try {
     var result = await Vendor.find({ status: "Pending" });
@@ -478,34 +405,7 @@ exports.GetVendor = async (req, res) => {
       .json({ type: "failure", result: "Server Not Responding. Try Again" });
   }
 };
-exports.GetVendorMessage = async (req, res) => {
-  try {
-    var result = await Vendor.findById(req.query.vendorId);
-    res.status(200).json({ type: "success", result: result.newMessage });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server Not Responding. Try Again" });
-  }
-};
-exports.PostVendorMessage = async (req, res) => {
-  try {
-    var result = await Vendor.findById(req.query.vendorId);
-    result.newMessage = req.body.chatflag;
-    const respond = await result.save();
-    if (!respond) {
-      res
-        .status(500)
-        .json({ type: "failure", result: "Server not Responding. Try Again" });
-      return;
-    }
-    res.status(200).json({ type: "success", result: "Success" });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server Not Responding. Try Again" });
-  }
-};
+
 
 exports.UpdateVendor = async (req, res) => {
   try {
@@ -580,29 +480,7 @@ exports.UpdateVendor = async (req, res) => {
     res.status(500).json({ type: "failure", result: "Server Not Responding" });
   }
 };
-exports.LoginQR = async (req, res) => {
-  try {
-    const vendorId = req.query.vendorId;
-    const vendor = await Vendor.findOne({ _id: vendorId });
-    const path = `assets/qrcode/${vendor._id}login.png`;
-    console.log(vendor);
 
-    //file exists
-    QRCode.toFile(path, [{ data: `${vendor.email}` }]).then(async () => {
-      vendor.loginqrcode = path;
-      const response = await vendor.save();
-      if (!response) {
-        res.status(500).json({
-          type: "failure",
-          result: "Server not Responding. Try Again",
-        });
-      }
-      res.status(200).json({ type: "success", result: path });
-    });
-  } catch (error) {
-    res.status(500).json({ type: "failure", result: "Server Not Responding" });
-  }
-};
 exports.OnLogout = async (req, res) => {
   try {
     const vendorId = req.query.vendorId;
@@ -642,24 +520,7 @@ exports.UpdateOnlineStatus = async (req, res, next) => {
   }
 };
 
-exports.qrcode = async (req, res, next) => {
-  const path = "assets/qrcode/foo.png";
-  try {
-    if (!fs.existsSync(path)) {
-      //file exists
-      QRCode.toFile("assets/qrcode/foo.png", [{ data: "new" }]).then(() => {
-        res.json("Qr code Generated");
-      });
-    } else {
-      res.json("Exist");
-    }
-  } catch (err) {
-    console.error(err);
-  }
-};
-
 exports.GetVendors = async (req, res) => {
-  console.log("object");
   try {
     const response = await Vendor.find();
     res.status(200).json({ type: "success", result: response });
@@ -689,88 +550,7 @@ exports.DeleteVendor = async (req, res) => {
       .json({ type: "failure", result: "Server not Responding. Try Again" });
   }
 };
-exports.DeleteVendorFromEvent = async (req, res) => {
-  try {
-    const vendorId = req.query.vendorId;
-    const eventId = req.query.eventId;
-    const item = await EventVendors.findOne({
-      $and: [{ event: eventId }, { vendor: vendorId }],
-    });
 
-    const response = await item.remove();
-
-    if (!response) {
-      res
-        .status(500)
-        .json({ type: "failure", result: "Server not Responding. Try Again" });
-      return;
-    }
-    try {
-      const event = await EventVendors.aggregate([
-        {
-          $match: { event: mongoose.Types.ObjectId(req.query.eventId) },
-        },
-        {
-          $group: {
-            _id: { event: mongoose.Types.ObjectId(req.query.eventId) },
-            totalTraders: { $sum: 1 },
-            traders: { $addToSet: "$vendor" },
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            event: "$_id.event",
-            totalTraders: 1,
-            traders: 1,
-          },
-        },
-        {
-          $lookup: {
-            from: "events",
-            localField: "event",
-            foreignField: "_id",
-            as: "event",
-          },
-        },
-        {
-          $unwind: "$event",
-        },
-        {
-          $lookup: {
-            from: "vendors",
-            localField: "traders",
-            foreignField: "_id",
-            as: "vendors",
-          },
-        },
-        {
-          $project: {
-            totalTraders: 0,
-            traders: 0,
-          },
-        },
-      ]);
-
-      if (event.length !== 0) {
-        res.status(200).json({ type: "success", result: event[0] });
-        return;
-      } else {
-        const e = await Event.findById(req.query.eventId);
-        res.status(200).json({ type: "success", result: e });
-      }
-    } catch (error) {
-      console.log(error);
-      res
-        .status(500)
-        .json({ type: "failure", result: "Server not Responding. Try Again" });
-    }
-  } catch (error) {
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
-  }
-};
 exports.OTP = async (req, res) => {
   try {
     var vendor = await Vendor.findOne({ email: req.query.email });
@@ -931,7 +711,6 @@ exports.changePassword = async (req, res) => {
     });
 };
 exports.getPayValues = async (req, res) => {
-  console.log(req.body);
 
   try {
     const yearly = await OrderModal.aggregate([

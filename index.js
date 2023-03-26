@@ -51,7 +51,6 @@ app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
 
 app.use("/assets", express.static("assets"));
-app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/customer", customer.routes);
 app.use("/vendor", vendor.routes);

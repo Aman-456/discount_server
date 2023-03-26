@@ -2,9 +2,7 @@ const Customer = require("../models/customer");
 const { validationResult } = require("express-validator");
 const Event = require("../models/event");
 const Vendor = require("../models/vendor");
-const EventVendors = require("../models/eventVendors");
 const Haversine = require("./functions/HaversineFormula");
-const otpGenerator = require("otp-generator");
 const nodemailer = require("nodemailer");
 
 const { AddCustomer, AddCard } = require("./../externals/stripe");
@@ -83,7 +81,7 @@ async function sendEmail(email, name, user, res) {
         pass: `${process.env.EMAIL_PASSWORD}`,
       },
     });
-    const URL = `https://${process.env.HOST}:${process.env.PORT}/customer/verify?token=${user._id}`;
+    const URL = `http://${process.env.HOST}:${3000}/customer/verify?token=${user._id}`;
     const mailOptions = {
       from: `${process.env.EMAIL_ADDRESS}`,
       to: email,
@@ -379,23 +377,6 @@ exports.GetLocationsForVendorsAndEvents = async (req, res) => {
   }
 };
 
-exports.GetVendorsForEvent = async (req, res) => {
-  try {
-    const eventId = req.query.eventId;
-    const eventDetails = await Event.findById(eventId);
-    const vendors = await EventVendors.find(
-      { event: eventId },
-      "vendor"
-    ).populate("vendor");
-    const eventWithVendors = { event: eventDetails, vendors: vendors };
-    res.status(200).json({ type: "success", result: eventWithVendors });
-  } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
-  }
-};
 exports.GetLocationsForVendorsAndEventsNearby = async (req, res) => {
   try {
     const currentLat = req.query.lat;
@@ -667,23 +648,5 @@ exports.DeleteCustomerAccount = async (req, res) => {
     res
       .status(500)
       .json({ type: "failure", result: "Server not Responding. Try Again" });
-  }
-};
-exports.PostCustomerNotification = async (req, res) => {
-  try {
-    var result = await Customer.findById(req.query.customerId);
-    result.newNotification = false;
-    const respond = await result.save();
-    if (!respond) {
-      res
-        .status(500)
-        .json({ type: "failure", result: "Server not Responding. Try Again" });
-      return;
-    }
-    res.status(200).json({ type: "success", result: "Success" });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server Not Responding. Try Again" });
   }
 };

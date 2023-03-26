@@ -40,6 +40,5 @@ router.put(
   Authenticator.athenticate,
   itemController.UpdateItemWithoutImage
 );
-router.post("/testupdate", itemController.TestItem);
 
 exports.routes = router;
