@@ -1,14 +1,8 @@
 const express = require("express");
-
-// const paypalController = require('../controllers/paypal');
 const stripeController = require("../controllers/stripe");
 const orderController = require("../controllers/order");
 
 const router = express.Router();
-
-// router.post("/paypal", paypalController.PaypalPayment);
-// router.get("/success", paypalController.SuccessPaypal);
-// router.get("/cancel", paypalController.CancelPaypal);
 
 router.post("/stripe", stripeController.StripePayment);
 router.get("/getOrder", orderController.GetOrder);

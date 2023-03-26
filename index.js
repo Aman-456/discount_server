@@ -10,7 +10,6 @@ const item = require("./routes/items");
 const admin = require("./routes/admin");
 const customer = require("./routes/customer");
 const order = require("./routes/order");
-const notification = require("./routes/notifications");
 const application = require("./routes/application");
 
 const MySocket = require("./socket/socket");
@@ -49,7 +48,6 @@ app.use("/vendor", vendor.routes);
 app.use("/item", item.routes);
 app.use("/admin", admin.routes);
 app.use("/order", order.routes);
-app.use("/notification", notification.routes);
 app.use("/application", application.routes);
 
 
