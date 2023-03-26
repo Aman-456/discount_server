@@ -11,9 +11,10 @@ const admin = require("./routes/admin");
 const customer = require("./routes/customer");
 const order = require("./routes/order");
 const notification = require("./routes/notifications");
-const chat = require("./routes/chat");
 const application = require("./routes/application");
 
+const MySocket = require("./socket/socket");
+const socket = require("socket.io");
 
 require("dotenv").config();
 require("./db/connect");
@@ -49,7 +50,6 @@ app.use("/item", item.routes);
 app.use("/admin", admin.routes);
 app.use("/order", order.routes);
 app.use("/notification", notification.routes);
-app.use("/chat", chat.routes);
 app.use("/application", application.routes);
 
 
@@ -57,3 +57,6 @@ server = app.listen(port, host, () => {
     console.log("Running Server at http://" + host + ":" + port);
 });
 
+let io = socket(server);
+
+MySocket(io);

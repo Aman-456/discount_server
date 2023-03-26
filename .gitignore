@@ -8,7 +8,4 @@
 node_modules
 socket
 
-constrollers/function.js
-constrollers/stripe.js
-constrollers/paypal.js
-constrollers/notifications.js
+constrollers
