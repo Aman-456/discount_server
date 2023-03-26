@@ -1,0 +1,689 @@
+const Customer = require("../models/customer");
+const { validationResult } = require("express-validator");
+const Event = require("../models/event");
+const Vendor = require("../models/vendor");
+const EventVendors = require("../models/eventVendors");
+const Haversine = require("./functions/HaversineFormula");
+const otpGenerator = require("otp-generator");
+const nodemailer = require("nodemailer");
+
+const { AddCustomer, AddCard } = require("./../externals/stripe");
+
+require("dotenv").config();
+
+const MessageBirdKey = process.env.MESSAGE_BIRD_KEY;
+
+const MessageBird = require("messagebird")(MessageBirdKey);
+
+exports.Signup = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (errors.errors.length != 0) {
+      res.json({ type: "failure", result: errors.errors[0].msg });
+      return;
+    } else {
+      const exist = await Customer.findOne({ email: req.body.email });
+      if (exist && exist.hide === false) {
+        return res.json({ type: "failure", result: "Email already exist" });
+      }
+      const pass_customer = await Customer.CreateHash(req.body.password);
+      if (exist && exist.hide === true) {
+        const response = await Customer.findByIdAndUpdate(exist._id, {
+          $set: {
+            hide: false,
+            name: req.body.name,
+            password: pass_customer,
+            phone: req.body.phone,
+          },
+        });
+        if (!response) {
+          res.status(500).json({
+            type: "failure",
+            result: "Server not Responding. Try Again",
+          });
+          return;
+        }
+
+        return res.status(200).json({
+          type: "active",
+          result: "Customer Registered Successfully",
+        });
+      }
+      const customer = new Customer(req.body);
+      customer.fcmToken = "";
+      customer.password = pass_customer;
+      const stripeCustomer = await AddCustomer(
+        customer.name,
+        customer.email,
+        "",
+        customer.phone,
+        ""
+      );
+      customer.stripeId = stripeCustomer.id;
+      sendEmail(customer.email, customer.name, customer, res);
+    }
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
+async function sendEmail(email, name, user, res) {
+  try {
+    console.log(
+      "object" + email + process.env.EMAIL_ADDRESS + process.env.EMAIL_PASSWORD
+    );
+    const transporter = await nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: `${process.env.EMAIL_ADDRESS}`,
+        pass: `${process.env.EMAIL_PASSWORD}`,
+      },
+    });
+    const URL = `https://${process.env.HOST}:${process.env.PORT}/customer/verify?token=${user._id}`;
+    const mailOptions = {
+      from: `${process.env.EMAIL_ADDRESS}`,
+      to: email,
+      subject: "Please confirm account",
+      html: `Dear ${name} Please Click the following link to confirm your account:</p><p>${URL}</p>`,
+      text: `Please confirm your account by clicking the following link: ${URL}`,
+    };
+
+    await transporter.verify();
+
+    //Send Email
+    await transporter.sendMail(mailOptions, (err, response) => {
+      console.log(response);
+      if (err) {
+        res
+          .status(500)
+          .json({ type: "failure", result: "Server Not Responding" });
+        return;
+      } else {
+        user.save(async (err) => {
+          if (err && err.code === 11000) {
+            const keyName = Object.keys(err.keyValue)[0];
+            res.json({
+              type: "failure",
+              result:
+                keyName.charAt(0).toUpperCase() +
+                keyName.slice(1) +
+                " Already Exist. Use a different Email",
+            });
+          } else {
+            res.status(200).json({
+              type: "success",
+              result: "Customer Registered Successfully",
+            });
+          }
+        });
+      }
+    });
+  } catch (error) {
+    console.log(error + "error");
+  }
+}
+exports.Verify = async (req, res) => {
+  const Id = req.query.token;
+  console.log(Id);
+  var user = await Customer.findOne({ _id: Id });
+  user.verify = true;
+  user
+    .save()
+    .then(() => {
+      res.status(200).json("Email has been verified");
+    })
+    .catch((error) => {
+      res
+        .status(500)
+        .json({ type: "failure", result: "Server Not Responding" });
+      return;
+    });
+};
+exports.OTP = async (req, res) => {
+  console.log("object" + req.body.email);
+  try {
+    var user = await Customer.findOne({ email: req.body.email });
+    if (user) {
+      sendOTP(user.email, user.name, user, res);
+    } else {
+      res.status(401).json({ type: "failure", result: "Email Does not Exist" });
+    }
+  } catch (error) {
+    console.log(error + "error");
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+async function sendOTP(email, name, user, res) {
+  try {
+    console.log("object" + email);
+    var otp = Math.floor(1000 + Math.random() * 9000);
+
+    console.log("object" + otp);
+    const now = new Date();
+    const expiration_time = new Date(now.getTime() + 10 * 60000);
+
+    user.otp = otp;
+    user.expireTime = expiration_time;
+    user.save(async (err, data) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ type: "failure", result: "Server Not Responding" });
+      } else {
+        const transporter = nodemailer.createTransport({
+          host: "smtp.gmail.com",
+          port: 465,
+          secure: true,
+          auth: {
+            user: `${process.env.EMAIL_ADDRESS}`,
+            pass: `${process.env.EMAIL_PASSWORD}`,
+          },
+        });
+
+        const mailOptions = {
+          from: `${process.env.EMAIL_ADDRESS}`,
+          to: `${email}`,
+          subject: "OTP: For Change Password",
+          text:
+            `Dear ${name}\, \n\n` +
+            "OTP for Change Password is : \n\n" +
+            `${otp}\n\n` +
+            "This is a auto-generated email. Please do not reply to this email.\n\n",
+        };
+
+        await transporter.verify();
+
+        //Send Email
+        transporter.sendMail(mailOptions, (err, response) => {
+          console.log(response);
+          console.log(err);
+
+          if (err) {
+            return res
+              .status(500)
+              .json({ type: "failure", result: "Server Not Responding" });
+          } else {
+            res.status(200).json({
+              type: "success",
+              result: "OTP has been sent",
+            });
+          }
+        });
+      }
+    });
+  } catch (error) {
+    console.log(error + "error");
+  }
+}
+exports.verifyOTP = async (req, res) => {
+  console.log("OTP" + req.body.number);
+  console.log("OTP Email" + req.body.email);
+
+  var otp = req.body.number;
+  const data = await Customer.findOne({ email: req.body.email });
+
+  const now = new Date();
+  if (now > new Date(data.expireTime)) {
+    res.status(401).json({ type: "failure", result: "OTP has been expired" });
+  } else {
+    if (otp === data.otp) {
+      res
+        .status(200)
+        .json({ type: "success", result: "OTP has been verified" });
+    } else {
+      res.status(401).json({ type: "failure", result: "OTP is incorrect" });
+    }
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  console.log("OTP" + req.body.email + req.body.password);
+
+  const user = await Customer.findOne({ email: req.body.email });
+  user.password = await Customer.CreateHash(req.body.password);
+  user
+    .save()
+    .then(() => {
+      res.status(200).json({
+        type: "success",
+        result: "Password has been changed",
+      });
+    })
+    .catch((error) => {
+      res
+        .status(500)
+        .json({ type: "failure", result: "Server Not Responding" });
+      return;
+    });
+};
+exports.Signin = async (req, res) => {
+  try {
+    const fcmToken = req.query.fcmToken;
+    const customer = new Customer({
+      email: req.query.email,
+      password: req.query.password,
+    });
+    const Foundcustomer = await Customer.findOne({ email: customer.email });
+    console.log(Foundcustomer);
+
+    if (!Foundcustomer) {
+      res.json({ type: "failure", result: "No User With Such Email Exists" });
+    } else {
+      if (Foundcustomer.hide === true) {
+        return res.json({
+          type: "failure",
+          result: "Account has been deleted",
+        });
+      }
+      if (Foundcustomer.verify === false) {
+        return res
+          .status(401)
+          .json({ type: "failureEmail", result: "Email is not verified" });
+      }
+      const isEqual = await Customer.isPasswordEqual(
+        customer.password,
+        Foundcustomer.password
+      );
+      if (isEqual) {
+        await Customer.findByIdAndUpdate(Foundcustomer._id, {
+          $set: { fcmToken: fcmToken },
+        });
+        res.status(200).json({
+          type: "success",
+          result: "Customer Logged In Successfully",
+          customer: {
+            id: Foundcustomer._id,
+            name: Foundcustomer.name,
+            phone: Foundcustomer.phone,
+            email: Foundcustomer.email,
+            stripeId: Foundcustomer.stripeId,
+            cards: Foundcustomer.cards,
+            favouriteVendors: Foundcustomer.favouriteVendors,
+          },
+        });
+      } else {
+        res.json({ type: "failure", result: "Wrong Password" });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
+
+exports.GetCustomer = async (req, res) => {
+  try {
+    const customer_id = req.query.customerId;
+
+    const customer = await Customer.findById(customer_id);
+
+    if (!customer) {
+      res
+        .status(500)
+        .json({ type: "failure", result: "Server not Responding. Try Again" });
+    } else {
+      res.json({ type: "success", result: customer });
+    }
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
+
+exports.GetLocationsForVendorsAndEvents = async (req, res) => {
+  try {
+    const currentLat = req.query.lat;
+    const currentLon = req.query.lon;
+    const events = await Event.find({ completeStatus: true }).lean();
+    const vendors = await Vendor.find({
+      completeStatus: true,
+      status: "Accepted",
+    }).lean();
+    const nearByVendors = await vendors.filter((vendor) => {
+      const distance = Haversine.CalculateDistance(
+        currentLat,
+        currentLon,
+        vendor.latitude,
+        vendor.longitude
+      );
+
+      vendor["distance"] = distance;
+      return vendor;
+    });
+    const nearByEvents = await events.filter((event) => {
+      const distance = Haversine.CalculateDistance(
+        currentLat,
+        currentLon,
+        event.latitude,
+        event.longitude
+      );
+
+      event["distance"] = distance;
+      return event;
+    });
+    const data = [...nearByEvents, ...nearByVendors];
+    res.status(200).json({ type: "success", result: data });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
+
+exports.GetVendorsForEvent = async (req, res) => {
+  try {
+    const eventId = req.query.eventId;
+    const eventDetails = await Event.findById(eventId);
+    const vendors = await EventVendors.find(
+      { event: eventId },
+      "vendor"
+    ).populate("vendor");
+    const eventWithVendors = { event: eventDetails, vendors: vendors };
+    res.status(200).json({ type: "success", result: eventWithVendors });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
+exports.GetLocationsForVendorsAndEventsNearby = async (req, res) => {
+  try {
+    const currentLat = req.query.lat;
+    const currentLon = req.query.lon;
+    const events = await Event.find({ completeStatus: true }).lean();
+    const vendors = await Vendor.find({
+      completeStatus: true,
+      status: "Accepted",
+    }).lean();
+    const nearByVendors = await vendors.filter((vendor) => {
+      const distance = Haversine.CalculateDistance(
+        currentLat,
+        currentLon,
+        vendor.latitude,
+        vendor.longitude
+      );
+      if (distance <= 20) {
+        vendor["distance"] = distance;
+        return vendor;
+      }
+      return false;
+    });
+    const nearByEvents = await events.filter((event) => {
+      const distance = Haversine.CalculateDistance(
+        currentLat,
+        currentLon,
+        event.latitude,
+        event.longitude
+      );
+      if (distance <= 20) {
+        event["distance"] = distance;
+        return event;
+      }
+      return false;
+    });
+    const data = [...nearByEvents, ...nearByVendors];
+    res.status(200).json({ type: "success", result: data });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
+exports.OnLogout = async (req, res) => {
+  try {
+    const customerId = req.query.customerId;
+    const response = await Customer.findByIdAndUpdate(customerId, {
+      $set: { fcmToken: "" },
+    });
+    if (response) {
+      res.status(200).json({ type: "success", result: "Logout Successfully" });
+    } else {
+      res
+        .status(500)
+        .json({ type: "failure", result: "Server Not Responding" });
+    }
+  } catch (error) {
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+
+exports.SendMessage = async (req, res) => {
+  try {
+    var params = {
+      originator: "INNUAA",
+      type: "sms",
+    };
+    MessageBird.verify.create(
+      req.query.phone,
+      params,
+      async (err, response) => {
+        if (!err) {
+          res.status(200).json({ type: "success", result: response });
+          return;
+        }
+        res.status(500).json({ type: "failure", result: err });
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+
+exports.OnVerifyMessage = async (req, res) => {
+  try {
+    const token = req.query.token;
+    const id = req.query.responseId;
+    MessageBird.verify.verify(id, token, async (err, response) => {
+      if (!err) {
+        console.log(response);
+        res.status(200).json({ type: "success", result: response });
+        return;
+      }
+      res.status(500).json({ type: "failure", result: err });
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+
+exports.UpdatePassword = async (req, res) => {
+  try {
+    console.log(req.query);
+
+    const customerId = req.query.customerId;
+    const customerFound = await Customer.findById(customerId);
+    const passResponse = await Customer.isPasswordEqual(
+      req.body.currentPassword,
+      customerFound.password
+    );
+    console.log("object" + passResponse);
+    if (passResponse) {
+      customerFound.password = await Customer.CreateHash(req.body.newPassword);
+    } else {
+      res
+        .status(401)
+        .json({ type: "failure", result: "Current Password is incorrect" });
+      return;
+    }
+    customerFound
+      .save()
+      .then(() => {
+        res
+          .status(200)
+          .json({ type: "success", result: "Password has been Changed" });
+      })
+      .catch((error) => {
+        res
+          .status(500)
+          .json({ type: "failure", result: "Server Not Responding" });
+        return;
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+exports.UpdateProfile = async (req, res) => {
+  try {
+    console.log(req.query);
+
+    const customerId = req.query.customerId;
+    const customerFound = await Customer.findById(customerId);
+    if (customerFound) {
+      customerFound.name = req.body.name;
+      customerFound.phone = req.body.phone;
+
+      customerFound
+        .save()
+        .then(async () => {
+          const customerFound2 = await Customer.findById(customerId);
+
+          res.status(200).json({
+            type: "success",
+            result: "Profile has been updated!",
+            data: {
+              id: customerFound2._id,
+              name: customerFound2.name,
+              phone: customerFound2.phone,
+              email: customerFound2.email,
+              stripeId: customerFound2.stripeId,
+              cards: customerFound2.cards,
+              favouriteVendors: customerFound2.favouriteVendors,
+            },
+          });
+        })
+        .catch((error) => {
+          res
+            .status(500)
+            .json({ type: "failure", result: "Server Not Responding" });
+          return;
+        });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+
+exports.MakeFavourite = async (req, res) => {
+  try {
+    const vendorId = req.body.vendorId;
+    const customerId = req.body.customerId;
+    const response = await Customer.find({ favouriteVendors: vendorId });
+    if (response.length > 0) {
+      res
+        .status(500)
+        .json({ type: "failure", result: "Vendor Already Favourited" });
+    } else {
+      await Customer.findByIdAndUpdate(customerId, {
+        $push: { favouriteVendors: [vendorId] },
+      });
+      res.status(200).json({ type: "success", result: "Vendor Favourited" });
+    }
+  } catch (error) {
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+
+exports.MakeUnFavourite = async (req, res) => {
+  try {
+    const vendorId = req.body.vendorId;
+    const customerId = req.body.customerId;
+    await Customer.findByIdAndUpdate(customerId, {
+      $pullAll: { favouriteVendors: [vendorId] },
+    });
+    res.status(200).json({ type: "success", result: "Vendor UnFavourited" });
+  } catch (error) {
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+
+exports.InsertCard = async (req, res) => {
+  try {
+    const card = req.body.card;
+    const customerId = req.body.userID;
+    const stripeId = req.body.stripeId;
+    const customerCard = await AddCard(
+      stripeId,
+      card.cardNumber,
+      card.expMonth,
+      card.expYear,
+      card.cvc,
+      { message: "" }
+    );
+    card.cardId = customerCard.id;
+    const response = await Customer.findByIdAndUpdate(customerId, {
+      $push: { cards: [card] },
+    });
+    res
+      .status(200)
+      .json({ type: "success", result: "Customer Card Inserted", data: card });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+
+exports.GetCustomers = async (req, res) => {
+  try {
+    const response = await Customer.find();
+    res.status(200).json({ type: "success", result: response });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+exports.DeleteCustomerAccount = async (req, res) => {
+  try {
+    console.log(req.query);
+    const response = await Customer.findByIdAndUpdate(req.query.id, {
+      $set: { hide: true },
+    });
+    if (!response) {
+      res
+        .status(500)
+        .json({ type: "failure", result: "Server not Responding. Try Again" });
+      return;
+    }
+
+    res.status(200).json({
+      type: "success",
+      result: "Yor account has been deleted successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
+exports.PostCustomerNotification = async (req, res) => {
+  try {
+    var result = await Customer.findById(req.query.customerId);
+    result.newNotification = false;
+    const respond = await result.save();
+    if (!respond) {
+      res
+        .status(500)
+        .json({ type: "failure", result: "Server not Responding. Try Again" });
+      return;
+    }
+    res.status(200).json({ type: "success", result: "Success" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
+};
