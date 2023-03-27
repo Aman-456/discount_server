@@ -21,14 +21,10 @@ router.get(
   customerController.GetLocationsForVendorsAndEventsNearby
 );
 
-router.get("/getVendorsForEvent", customerController.GetVendorsForEvent);
 router.get("/onLogout", customerController.OnLogout);
 router.post("/makeFavourite", customerController.MakeFavourite);
 router.post("/makeUnFavourite", customerController.MakeUnFavourite);
-router.post(
-  "/postcustomernotification",
-  customerController.PostCustomerNotification
-);
+
 router.get("/getCustomers", customerController.GetCustomers);
 router.get("/deletecustomeraccount", customerController.DeleteCustomerAccount);
 router.post("/insertCard", customerController.InsertCard);

@@ -1,6 +1,5 @@
 const Customer = require("../models/customer");
 const { validationResult } = require("express-validator");
-const Event = require("../models/event");
 const Vendor = require("../models/vendor");
 const Haversine = require("./functions/HaversineFormula");
 const nodemailer = require("nodemailer");
@@ -9,9 +8,7 @@ const { AddCustomer, AddCard } = require("./../externals/stripe");
 
 require("dotenv").config();
 
-const MessageBirdKey = process.env.MESSAGE_BIRD_KEY;
 
-const MessageBird = require("messagebird")(MessageBirdKey);
 
 exports.Signup = async (req, res) => {
   try {
@@ -439,46 +436,6 @@ exports.OnLogout = async (req, res) => {
   }
 };
 
-exports.SendMessage = async (req, res) => {
-  try {
-    var params = {
-      originator: "INNUAA",
-      type: "sms",
-    };
-    MessageBird.verify.create(
-      req.query.phone,
-      params,
-      async (err, response) => {
-        if (!err) {
-          res.status(200).json({ type: "success", result: response });
-          return;
-        }
-        res.status(500).json({ type: "failure", result: err });
-      }
-    );
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ type: "failure", result: "Server Not Responding" });
-  }
-};
-
-exports.OnVerifyMessage = async (req, res) => {
-  try {
-    const token = req.query.token;
-    const id = req.query.responseId;
-    MessageBird.verify.verify(id, token, async (err, response) => {
-      if (!err) {
-        console.log(response);
-        res.status(200).json({ type: "success", result: response });
-        return;
-      }
-      res.status(500).json({ type: "failure", result: err });
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ type: "failure", result: "Server Not Responding" });
-  }
-};
 
 exports.UpdatePassword = async (req, res) => {
   try {

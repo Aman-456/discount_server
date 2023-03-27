@@ -1,7 +1,6 @@
 const Order = require("../models/orders");
 const stripe = require("stripe");
 const uuid4 = require("uuid4");
-const Firebase = require("../firebase/firebase");
 require("dotenv").config();
 
 const Secret_Key = process.env.STRIPE_SECRET_KEY_NEW;
@@ -68,11 +67,7 @@ exports.StripePayment = async (req, res) => {
       const order = await Order.findById(orderId)
         .populate("customer")
         .populate("vendor");
-      await Firebase.Notify(
-        "Order Checked Out",
-        "You can start Cooking !",
-        order.vendor.fcmToken
-      );
+
       if (!result) {
         res.status(500).json({
           type: "failure",

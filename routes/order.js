@@ -12,10 +12,7 @@ router.get("/getVendorByEarning", orderController.GetVendorByEarning);
 router.get("/getUserOrders", orderController.GetUserOrders);
 router.get("/getUserOrdersDeliver", orderController.GetUserOrdersDelivered);
 router.put("/review", orderController.GiveReview);
-router.put(
-  "/updatereviewnotification",
-  orderController.UpdateReviewNotification
-);
+
 router.get("/getReviewsByVendor", orderController.GetReviewsByVendor);
 router.get("/getDeliveredOrders", orderController.GetDeliveredOrdersByVendor);
 router.put("/orderDelivered", orderController.OrderDelivered);

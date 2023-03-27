@@ -1,13 +1,7 @@
-const Firebase = require("../../firebase/firebase");
 const moment = require("moment");
-const {
-  RedeemVoucherFunc,
-} = require("../../controllers/functions/RedeemVoucher");
-const Notification = require("../../models/notifications");
 const Order = require("../../models/orders");
 const Customer = require("../../models/customer");
 const Vendor = require("../../models/vendor");
-const rider = require("../../models/rider");
 const Haversine = require("../../controllers/functions/HaversineFormula");
 
 exports.onSendRequestFromCustomer = async (data) => {
@@ -138,56 +132,22 @@ exports.onSendRequestFromCustomer = async (data) => {
     }
 
     const orderResponse = await order.save();
-    var notification;
     if (reorder === true) {
       if (type === "normal") {
-        notification = new Notification({
-          vendor: vendorID,
-          customer: customerID,
-          sentBy: "customer",
-          type: "order",
-          text: customer.name + " Made a (Reorder) Order Request",
-          readStatus: false,
-          order: orderResponse._id,
-        });
+
       }
       if (type === "preorder") {
-        notification = new Notification({
-          vendor: vendorID,
-          customer: customerID,
-          sentBy: "customer",
-          type: "order",
-          text: customer.name + " Made a (Reorder) Pre Order Request",
-          readStatus: false,
-          order: orderResponse._id,
-        });
+
       }
     } else {
       if (type === "normal") {
-        notification = new Notification({
-          vendor: vendorID,
-          customer: customerID,
-          sentBy: "customer",
-          type: "order",
-          text: customer.name + " Made a Order Request",
-          readStatus: false,
-          order: orderResponse._id,
-        });
+
       }
       if (type === "preorder") {
-        notification = new Notification({
-          vendor: vendorID,
-          customer: customerID,
-          sentBy: "customer",
-          type: "order",
-          text: customer.name + " Made a Pre Order Request",
-          readStatus: false,
-          order: orderResponse._id,
-        });
+
       }
     }
 
-    await notification.save();
 
     if (vendor.fcmToken) {
       const orderDetails = await Order.findById(order._id)
@@ -195,47 +155,24 @@ exports.onSendRequestFromCustomer = async (data) => {
         .populate("vendor");
       if (type === "normal") {
         if (reorder === true) {
-          await Firebase.VendorNotify(
-            "Reorder Request from " + orderDetails.customer.name,
-            "Customer is Waiting, Respond to  Order Request",
-            orderDetails.vendor.fcmToken
-          );
+
         } else {
           console.log("object");
-          await Firebase.VendorNotify(
-            "New Order Request from " + orderDetails.customer.name,
-            "Customer is Waiting, Respond to  Order Request",
-            orderDetails.vendor.fcmToken
-          );
+
         }
       }
       if (type === "preorder") {
         if (reorder === true) {
-          await Firebase.VendorNotify(
-            "Pre Order (Reorder) Request from " + orderDetails.customer.name,
-            "Customer is Waiting, Respond to  Order Request",
-            orderDetails.vendor.fcmToken
-          );
+
         } else {
-          await Firebase.VendorNotify(
-            "Pre Order Request from " + orderDetails.customer.name,
-            "Customer is Waiting, Respond to  Order Request",
-            orderDetails.vendor.fcmToken
-          );
+
         }
       }
     } else {
       // console.log("No FCM Token");
     }
 
-    const newNotification = await Notification.findById(notification._id)
-      .populate("customer")
-      .populate("order");
-    return {
-      type: true,
-      message: customer.name + " Requested A Order",
-      data: { notification: newNotification, order: order },
-    };
+
   } catch (error) {
     console.log(error);
     return { type: false, msg: "Server Not Responding", error: error };

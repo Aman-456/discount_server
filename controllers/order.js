@@ -1,5 +1,4 @@
 const Order = require("../models/orders");
-const Notification = require("../models/notifications");
 const Customer = require("../models/customer");
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
@@ -229,16 +228,7 @@ exports.OrderDelivered = async (req, res) => {
         .json({ type: "failure", result: "Server not Responding. Try Again" });
     }
 
-    const n = new Notification({
-      vendor: order.vendor._id,
-      customer: order.customer._id,
-      sentBy: "vendor",
-      type: "order",
-      text: order.vendor.name + " Thank You For Your Order",
-      order: order._id,
-      readStatus: true,
-    });
-    n.save();
+
     var result = await Customer.findById(order.customer._id);
     result.newNotification = true;
     await result.save();

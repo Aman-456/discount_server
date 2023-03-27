@@ -1,7 +1,6 @@
 const Admin = require("../models/admin");
 const Order = require("../models/orders");
 const Vendor = require("../models/vendor");
-const Job = require("../models/job");
 const { validationResult } = require("express-validator");
 const JWT = require("jsonwebtoken");
 require("dotenv").config();

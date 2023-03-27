@@ -14,8 +14,6 @@ router.post("/googleOauth", vendorControllers.OauthGoogle);
 router.post("/facebookOauth", vendorControllers.OauthFacebook);
 
 router.get("/signin", vendorControllers.Signin);
-router.get("/loginqr", vendorControllers.LoginQR);
-router.post("/signinqr", vendorControllers.QRSignin);
 router.get("/changepassword", vendorControllers.ChangePassword);
 router.get("/getNearByVendors", vendorControllers.GetNearByVendors);
 router.get(
@@ -26,10 +24,7 @@ router.get(
 router.put("/updateStatus", vendorControllers.UpdateStatus);
 router.put("/updateStatusblock", vendorControllers.UpdateStatusBlock);
 router.post("/updateStatusdelete", vendorControllers.DeleteVendor);
-router.post(
-  "/updateStatusdeletefromEvent",
-  vendorControllers.DeleteVendorFromEvent
-);
+
 router.put(
   "/updateVendor",
   MulterMiddleware.upload,
@@ -42,8 +37,6 @@ router.get(
   vendorControllers.GetVendor
 );
 
-router.get("/getVendorMessage", vendorControllers.GetVendorMessage);
-router.post("/postVendorMessage", vendorControllers.PostVendorMessage);
 router.post(
   "/statusUpdated",
   Authenticator.athenticate,
@@ -51,7 +44,6 @@ router.post(
 );
 router.get("/getvendors", vendorControllers.GetVendors);
 router.get("/onLogout", vendorControllers.OnLogout);
-router.get("/qrcode", vendorControllers.qrcode);
 router.post("/connectpay", vendorControllers.ConnectPay);
 router.post("/connectcomplete", vendorControllers.ConnectComplete);
 router.post("/connectrefresh", vendorControllers.ConnectRefresh);
