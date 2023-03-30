@@ -2,11 +2,13 @@ const express = require("express");
 
 const customerController = require("../controllers/customer");
 const customerHandler = require("../handlers/customer");
+const customerMulter = require("../middlewares/customerMulter");
 const router = express.Router();
 
 router.post(
   "/signup",
-  customerHandler.customerHandler,
+  // customerHandler.customerHandler,
+  customerMulter.upload.single("image"),
   customerController.Signup
 );
 router.get("/verify", customerController.Verify);

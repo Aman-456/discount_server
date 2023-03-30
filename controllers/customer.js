@@ -12,6 +12,7 @@ require("dotenv").config();
 
 exports.Signup = async (req, res) => {
   try {
+    console.log(req.body);
     const errors = validationResult(req);
     if (errors.errors.length != 0) {
       res.json({ type: "failure", result: errors.errors[0].msg });
@@ -29,6 +30,7 @@ exports.Signup = async (req, res) => {
             name: req.body.name,
             password: pass_customer,
             phone: req.body.phone,
+            address: req.body.address
           },
         });
         if (!response) {
@@ -44,18 +46,24 @@ exports.Signup = async (req, res) => {
           result: "Customer Registered Successfully",
         });
       }
+      else {
+        let cus = await new Customer(req.body);
+        if (cus.save())
+          return res.json({ type: "success", result: "Customer Registered Successfully" });
+
+      }
       const customer = new Customer(req.body);
       customer.fcmToken = "";
       customer.password = pass_customer;
-      const stripeCustomer = await AddCustomer(
-        customer.name,
-        customer.email,
-        "",
-        customer.phone,
-        ""
-      );
-      customer.stripeId = stripeCustomer.id;
-      sendEmail(customer.email, customer.name, customer, res);
+      // const stripeCustomer = await AddCustomer(
+      //   customer.name,
+      //   customer.email,
+      //   "",
+      //   customer.phone,
+      //   ""
+      // );
+      // customer.stripeId = stripeCustomer.id;
+      // sendEmail(customer.email, customer.name, customer, res);
     }
   } catch (error) {
     console.log(error);
