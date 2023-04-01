@@ -190,58 +190,53 @@ async function sendOTP(email, name, user, res) {
 
     user.otp = otp;
     user.expireTime = expiration_time;
-    // await user.save();
-    // res.status(200).json({
-    //   type: "success",
-    //   result: "Customer Registered Successfully",
-    // });
-    user.save(async (err, data) => {
-      if (err) {
-        return res
-          .status(500)
-          .json({ type: "failure", result: "Server Not Responding" });
-      } else {
-        const transporter = nodemailer.createTransport({
-          host: "smtp.gmail.com",
-          port: 465,
-          secure: true,
-          auth: {
-            user: `${process.env.EMAIL_ADDRESS} `,
-            pass: `${process.env.EMAIL_PASSWORD} `,
-          },
-        });
+    const u = await user.save();
+    if (!user) {
+      return res
+        .status(500)
+        .json({ type: "failure", result: "Server Not Responding" });
+    }
 
-        const mailOptions = {
-          from: `${process.env.EMAIL_ADDRESS} `,
-          to: `${email} `,
-          subject: "OTP: For Change Password",
-          text:
-            `Dear ${name} \, \n\n` +
-            "OTP for Change Password is : \n\n" +
-            `${otp} \n\n` +
-            "This is a auto-generated email. Please do not reply to this email.\n\n",
-        };
+    else {
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: {
+          user: `${process.env.EMAIL_ADDRESS} `,
+          pass: `${process.env.APP_PASS || process.env.EMAIL_PASSWORD} `,
+        },
+      });
 
-        await transporter.verify();
+      const mailOptions = {
+        from: `${process.env.EMAIL_ADDRESS} `,
+        to: `${email} `,
+        subject: "OTP: For Change Password",
+        text:
+          `Dear ${name} \, \n\n` +
+          "OTP for Change Password is : \n\n" +
+          `${otp} \n\n` +
+          "This is a auto-generated email. Please do not reply to this email.\n\n",
+      };
 
-        //Send Email
-        transporter.sendMail(mailOptions, (err, response) => {
-          console.log(response);
-          console.log(err);
+      await transporter.verify();
 
-          if (err) {
-            return res
-              .status(500)
-              .json({ type: "failure", result: "Server Not Responding" });
-          } else {
-            res.status(200).json({
-              type: "success",
-              result: "OTP has been sent",
-            });
-          }
-        });
-      }
-    });
+      //Send Email
+      transporter.sendMail(mailOptions, (err, response) => {
+
+        if (err) {
+          return res
+            .status(500)
+            .json({ type: "failure", result: "Server Not Responding" });
+        } else {
+          res.status(200).json({
+            type: "success",
+            result: "OTP has been sent",
+          });
+        }
+      });
+    }
+
   } catch (error) {
     console.log(error + "error");
   }
@@ -249,13 +244,15 @@ async function sendOTP(email, name, user, res) {
 exports.verifyOTP = async (req, res) => {
   console.log("OTP" + req.body.number);
   console.log("OTP Email" + req.body.email);
-
+  if (!req.body.number || !req.body.email) {
+    return res.json({ type: "failure", result: "either email or otp is undefined" })
+  }
   var otp = req.body.number;
   const data = await Customer.findOne({ email: req.body.email });
 
   const now = new Date();
   if (now > new Date(data.expireTime)) {
-    res.status(401).json({ type: "failure", result: "OTP has been expired" });
+    return res.status(401).json({ type: "failure", result: "OTP has been expired" });
   } else {
     if (otp === data.otp) {
       res
