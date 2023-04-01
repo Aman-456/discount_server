@@ -3,7 +3,8 @@ const { validationResult } = require("express-validator");
 const Vendor = require("../models/vendor");
 const Haversine = require("./functions/HaversineFormula");
 const nodemailer = require("nodemailer");
-
+var handlebars = require("handlebars");
+var fs = require("fs");
 const { AddCustomer, AddCard } = require("./../externals/stripe");
 
 require("dotenv").config();
@@ -46,12 +47,7 @@ exports.Signup = async (req, res) => {
           result: "Customer Registered Successfully",
         });
       }
-      else {
-        let cus = await new Customer(req.body);
-        if (cus.save())
-          return res.json({ type: "success", result: "Customer Registered Successfully" });
 
-      }
       const customer = new Customer(req.body);
       customer.fcmToken = "";
       customer.password = pass_customer;
@@ -63,7 +59,7 @@ exports.Signup = async (req, res) => {
       //   ""
       // );
       // customer.stripeId = stripeCustomer.id;
-      // sendEmail(customer.email, customer.name, customer, res);
+      await sendEmail(customer.email, customer.name, customer, res);
     }
   } catch (error) {
     console.log(error);
@@ -72,6 +68,18 @@ exports.Signup = async (req, res) => {
       .json({ type: "failure", result: "Server not Responding. Try Again" });
   }
 };
+
+var readHTMLFile = function (path, callback) {
+  fs.readFile(path, { encoding: "utf-8" }, function (err, html) {
+    if (err) {
+      callback(err);
+      throw err;
+    } else {
+      callback(null, html);
+    }
+  });
+};
+
 async function sendEmail(email, name, user, res) {
   try {
     console.log(
@@ -83,48 +91,90 @@ async function sendEmail(email, name, user, res) {
       secure: true,
       auth: {
         user: `${process.env.EMAIL_ADDRESS}`,
-        pass: `${process.env.EMAIL_PASSWORD}`,
+        pass: `${process.env.APP_PASS || process.env.EMAIL_PASSWORD}`,
       },
     });
     const URL = `http://${process.env.HOST}:${3000}/customer/verify?token=${user._id}`;
-    const mailOptions = {
-      from: `${process.env.EMAIL_ADDRESS}`,
-      to: email,
-      subject: "Please confirm account",
-      html: `Dear ${name} Please Click the following link to confirm your account:</p><p>${URL}</p>`,
-      text: `Please confirm your account by clicking the following link: ${URL}`,
-    };
+    // const mailOptions = {
+    //   from: `${process.env.EMAIL_ADDRESS}`,
+    //   to: email,
+    //   subject: "Please confirm account",
+    //   html: `Dear ${name} Please Click the following link to confirm your account:</p><p>${URL}</p>`,
+    //   text: `Please confirm your account by clicking the following link: ${URL}`,
+    // };
 
-    await transporter.verify();
+    // await transporter.verify();
 
     //Send Email
-    await transporter.sendMail(mailOptions, (err, response) => {
-      console.log(response);
-      if (err) {
-        res
-          .status(500)
-          .json({ type: "failure", result: "Server Not Responding" });
-        return;
-      } else {
-        user.save(async (err) => {
-          if (err && err.code === 11000) {
-            const keyName = Object.keys(err.keyValue)[0];
-            res.json({
-              type: "failure",
-              result:
-                keyName.charAt(0).toUpperCase() +
-                keyName.slice(1) +
-                " Already Exist. Use a different Email",
-            });
+    // await transporter.sendMail(mailOptions, async (err, response) => {
+    //   console.log(response);
+    //   if (err) {
+    //     res
+    //       .status(500)
+    //       .json({ type: "failure", result: "Server Not Responding" });
+    //     return;
+    //   } else {
+    //     const cus = await user.save();
+    //     if (cus) {
+    //       res.status(200).json({
+    //         type: "success",
+    //         result: "Please verify your email!",
+    //       });
+    //     }
+    //     else {
+    //       res.status(200).json({
+    //         type: "failue",
+    //         result: "Customer Registeration Error",
+    //       });
+    //     }
+    //   }
+    // });
+    readHTMLFile(
+      "./templates/emailverification.html",
+      async function (err, html) {
+        var template = handlebars.compile(html);
+        var replacements = {
+          name: user.name,
+          link: URL,
+        };
+        var htmlToSend = template(replacements);
+
+        const mailOptions = {
+          from: `${process.env.EMAIL_ADDRESS}`,
+          to: email,
+          subject: "Please confirm account",
+          html: htmlToSend,
+        };
+
+        await transporter.verify();
+
+        //Send Email
+        await transporter.sendMail(mailOptions, async (err, response) => {
+          console.log(response);
+          if (err) {
+            res
+              .status(500)
+              .json({ type: "failure", result: "Server Not Responding" });
+            return;
           } else {
-            res.status(200).json({
-              type: "success",
-              result: "Customer Registered Successfully",
-            });
+
+            const cus = await user.save();
+            if (cus) {
+              res.status(200).json({
+                type: "success",
+                result: "Please verify your email!",
+              });
+            }
+            else {
+              res.status(200).json({
+                type: "failue",
+                result: "Customer Registeration Error",
+              });
+            }
           }
         });
       }
-    });
+    );
   } catch (error) {
     console.log(error + "error");
   }
@@ -134,17 +184,14 @@ exports.Verify = async (req, res) => {
   console.log(Id);
   var user = await Customer.findOne({ _id: Id });
   user.verify = true;
-  user
-    .save()
-    .then(() => {
-      res.status(200).json("Email has been verified");
-    })
-    .catch((error) => {
-      res
-        .status(500)
-        .json({ type: "failure", result: "Server Not Responding" });
-      return;
-    });
+  const cus = await user.save();
+  if (cus) {
+    return res.json({ type: "success", result: "Email has been verified" });
+  }
+  else {
+    res.json({ type: "failure", result: "Server Not Responding" });
+  }
+
 };
 exports.OTP = async (req, res) => {
   console.log("object" + req.body.email);
@@ -171,6 +218,11 @@ async function sendOTP(email, name, user, res) {
 
     user.otp = otp;
     user.expireTime = expiration_time;
+    // await user.save();
+    // res.status(200).json({
+    //   type: "success",
+    //   result: "Customer Registered Successfully",
+    // });
     user.save(async (err, data) => {
       if (err) {
         return res
