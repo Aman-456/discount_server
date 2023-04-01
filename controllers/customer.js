@@ -154,6 +154,7 @@ exports.Verify = async (req, res) => {
       return res.redirect("http://localhost:3000")
     }
     user.verify = true;
+    await user.save()
     return res.sendFile(
       path.join(__dirname + "../../templates/emailverified.html")
     );

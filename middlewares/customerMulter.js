@@ -1,7 +1,7 @@
 const multer = require('multer');
 const fs = require('fs');
 
-const destination = 'assets/customer/';
+const destination = 'assets/customer';
 
 // Create destination directory if it doesn't exist
 if (!fs.existsSync(destination)) {
