@@ -15,7 +15,7 @@ router.get("/verify", customerController.Verify);
 router.post("/otpsend", customerController.OTP);
 router.post("/verifyotp", customerController.verifyOTP);
 router.post("/passwordchange", customerController.changePassword);
-router.get("/signin", customerController.Signin);
+router.post("/signin", customerController.Signin);
 router.post("/getCustomer", customerController.GetCustomer);
 router.get("/getLocations", customerController.GetLocationsForVendorsAndEvents);
 router.get(

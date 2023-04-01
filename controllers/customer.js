@@ -5,6 +5,7 @@ const Haversine = require("./functions/HaversineFormula");
 const nodemailer = require("nodemailer");
 var handlebars = require("handlebars");
 var fs = require("fs");
+const path = require("path")
 const { AddCustomer, AddCard } = require("./../externals/stripe");
 
 require("dotenv").config();
@@ -59,7 +60,7 @@ exports.Signup = async (req, res) => {
       //   ""
       // );
       // customer.stripeId = stripeCustomer.id;
-      await sendEmail(customer.email, customer.name, customer, res);
+      sendEmail(customer.email, customer.name, customer, res);
     }
   } catch (error) {
     console.log(error);
@@ -94,41 +95,7 @@ async function sendEmail(email, name, user, res) {
         pass: `${process.env.APP_PASS || process.env.EMAIL_PASSWORD}`,
       },
     });
-    const URL = `http://${process.env.HOST}:${3000}/customer/verify?token=${user._id}`;
-    // const mailOptions = {
-    //   from: `${process.env.EMAIL_ADDRESS}`,
-    //   to: email,
-    //   subject: "Please confirm account",
-    //   html: `Dear ${name} Please Click the following link to confirm your account:</p><p>${URL}</p>`,
-    //   text: `Please confirm your account by clicking the following link: ${URL}`,
-    // };
-
-    // await transporter.verify();
-
-    //Send Email
-    // await transporter.sendMail(mailOptions, async (err, response) => {
-    //   console.log(response);
-    //   if (err) {
-    //     res
-    //       .status(500)
-    //       .json({ type: "failure", result: "Server Not Responding" });
-    //     return;
-    //   } else {
-    //     const cus = await user.save();
-    //     if (cus) {
-    //       res.status(200).json({
-    //         type: "success",
-    //         result: "Please verify your email!",
-    //       });
-    //     }
-    //     else {
-    //       res.status(200).json({
-    //         type: "failue",
-    //         result: "Customer Registeration Error",
-    //       });
-    //     }
-    //   }
-    // });
+    const URL = `http://${process.env.HOST}:${5000}/customer/verify?token=${user._id} `;
     readHTMLFile(
       "./templates/emailverification.html",
       async function (err, html) {
@@ -140,7 +107,7 @@ async function sendEmail(email, name, user, res) {
         var htmlToSend = template(replacements);
 
         const mailOptions = {
-          from: `${process.env.EMAIL_ADDRESS}`,
+          from: `${process.env.EMAIL_ADDRESS} `,
           to: email,
           subject: "Please confirm account",
           html: htmlToSend,
@@ -149,7 +116,7 @@ async function sendEmail(email, name, user, res) {
         await transporter.verify();
 
         //Send Email
-        await transporter.sendMail(mailOptions, async (err, response) => {
+        transporter.sendMail(mailOptions, async (err, response) => {
           console.log(response);
           if (err) {
             res
@@ -181,12 +148,16 @@ async function sendEmail(email, name, user, res) {
 }
 exports.Verify = async (req, res) => {
   const Id = req.query.token;
-  console.log(Id);
   var user = await Customer.findOne({ _id: Id });
-  user.verify = true;
-  const cus = await user.save();
-  if (cus) {
-    return res.json({ type: "success", result: "Email has been verified" });
+  if (user) {
+    if (user.verify == true) {
+      return res.redirect("http://localhost:3000")
+    }
+    user.verify = true;
+    return res.sendFile(
+      path.join(__dirname + "../../templates/emailverified.html")
+    );
+
   }
   else {
     res.json({ type: "failure", result: "Server Not Responding" });
@@ -234,19 +205,19 @@ async function sendOTP(email, name, user, res) {
           port: 465,
           secure: true,
           auth: {
-            user: `${process.env.EMAIL_ADDRESS}`,
-            pass: `${process.env.EMAIL_PASSWORD}`,
+            user: `${process.env.EMAIL_ADDRESS} `,
+            pass: `${process.env.EMAIL_PASSWORD} `,
           },
         });
 
         const mailOptions = {
-          from: `${process.env.EMAIL_ADDRESS}`,
-          to: `${email}`,
+          from: `${process.env.EMAIL_ADDRESS} `,
+          to: `${email} `,
           subject: "OTP: For Change Password",
           text:
-            `Dear ${name}\, \n\n` +
+            `Dear ${name} \, \n\n` +
             "OTP for Change Password is : \n\n" +
-            `${otp}\n\n` +
+            `${otp} \n\n` +
             "This is a auto-generated email. Please do not reply to this email.\n\n",
         };
 
@@ -317,10 +288,9 @@ exports.changePassword = async (req, res) => {
 };
 exports.Signin = async (req, res) => {
   try {
-    const fcmToken = req.query.fcmToken;
     const customer = new Customer({
-      email: req.query.email,
-      password: req.query.password,
+      email: req.body.email,
+      password: req.body.password,
     });
     const Foundcustomer = await Customer.findOne({ email: customer.email });
     console.log(Foundcustomer);
@@ -344,9 +314,6 @@ exports.Signin = async (req, res) => {
         Foundcustomer.password
       );
       if (isEqual) {
-        await Customer.findByIdAndUpdate(Foundcustomer._id, {
-          $set: { fcmToken: fcmToken },
-        });
         res.status(200).json({
           type: "success",
           result: "Customer Logged In Successfully",
@@ -355,7 +322,8 @@ exports.Signin = async (req, res) => {
             name: Foundcustomer.name,
             phone: Foundcustomer.phone,
             email: Foundcustomer.email,
-            stripeId: Foundcustomer.stripeId,
+            // stripeId: Foundcustomer.stripeId,
+            image: Foundcustomer.image,
             cards: Foundcustomer.cards,
             favouriteVendors: Foundcustomer.favouriteVendors,
           },

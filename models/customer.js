@@ -26,7 +26,6 @@ const CustomerSchema = new Schema(
     otp: { type: String },
     hide: { type: Boolean, default: false },
     expireTime: { type: Date },
-    fcmToken: { type: String },
     stripeId: { type: String },
     favouriteVendors: [{ type: Schema.Types.ObjectId, ref: "vendor" }],
     cards: [CardSchema],
