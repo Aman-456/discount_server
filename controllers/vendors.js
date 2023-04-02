@@ -14,41 +14,27 @@ const { sendOTP } = require("./functions/OtpEmail");
 
 exports.Signup = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (errors.errors.length != 0) {
-      res.json({ type: "failure", result: errors.errors[0].msg });
-      return;
+
+
+
+    const exist = await Vendor.findOne({ email: req.body.email });
+    if (exist) {
+      return res.json({ type: "failure", result: "Email already exist" });
     }
     const vendor = new Vendor(req.body);
-    console.log("vendor " + vendor);
-    vendor.email = req.body.email.toLowerCase();
-    vendor.status = "Accepted";
-    vendor.image = "assets/vendors/sample.jpg";
+    vendor.status = "Pending";
     vendor.password = await Vendor.CreateHash(vendor.password);
     vendor.completeStatus = false;
     vendor.block = false;
-    vendor.latitude = "";
-    vendor.longitude = "";
-    vendor.address = "";
-    vendor.provider = { type: "none", providerId: "none" };
-    vendor.fcmToken = "";
-    vendor.foodType = "";
-    vendor.setUp = "";
-    vendor.dietary = "";
-    vendor.foodPackaging = "";
-    vendor.weight = "";
-    vendor.powerRequirement = "";
-    vendor.hygieneRating = "";
-    vendor.banner = "assets/vendors/banner.jpg";
-    vendor.dimension = { width: 0, height: 0, length: 0 };
-    vendor.documents = [];
 
     await AdminEmail(vendor, "Sign up");
+    await vendor.save();
     res.status(200).json({
       type: "success",
       result: "You have successfully signed up",
     });
   } catch (error) {
+    console.log({ error });
     res
       .status(500)
       .json({ type: "failure", result: "Server not Responding. Try Again" });
@@ -80,7 +66,7 @@ exports.ChangePassword = async (req, res) => {
       return res.json({ type: "failure", result: "Wrong Password" });
     }
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
     res
       .status(500)
       .json({ type: "failure", result: "Server not Responding. Try Again" });

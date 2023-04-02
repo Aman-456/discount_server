@@ -1,31 +1,22 @@
 const multer = require('multer');
+const fs = require('fs');
+
+const destination = 'assets/vendor';
+
+// Create destination directory if it doesn't exist
+if (!fs.existsSync(destination)) {
+    fs.mkdirSync(destination, { recursive: true });
+}
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'assets/vendors/' + req.query.vendorId)
+        cb(null, destination)
     },
     filename: function (req, file, cb) {
         var filename = Date.now() + '-' + file.originalname;
-        req.body[file.fieldname] = 'assets/vendors/' + req.query.vendorId + '/' + filename;
-        if (req.body.newFiles) {
-            req.body.newFiles.push(file.fieldname);
-        } else {
-            req.body.newFiles = [];
-            req.body.newFiles.push(file.fieldname);
-        }
+        req.body.image = "assets/vendor/" + filename;
         cb(null, filename);
     }
 });
 
-exports.upload = multer({ storage: storage }).fields([
-    { name: "image" },
-    { name: "banner" },
-    { name: "publicLiability" },
-    { name: "employerLiability" },
-    { name: "riskAssesments" },
-    { name: "fhiCertificate" },
-    { name: "gasSafetyCertificate" },
-    { name: "NVQ" },
-    { name: "businessRegistration" },
-    { name: "fireBlanket" }
-]);
+exports.upload = multer({ storage: storage });

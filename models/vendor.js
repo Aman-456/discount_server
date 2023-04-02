@@ -26,11 +26,6 @@ const VendorSchema = new Schema(
     dayStartTime: { type: Object },
     dayEndTime: { type: Object },
 
-    foodType: { type: String },
-    setUp: { type: String },
-    dietary: { type: String },
-    weight: { type: String },
-    banner: { type: String, trim: true },
     rating: { type: String, trim: true, default: "0" },
     onlineStatus: { type: Boolean, default: false },
     minimumOrderPrice: { type: Number },

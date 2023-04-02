@@ -1,17 +1,19 @@
 const express = require("express");
 
 const vendorHandler = require("../handlers/vendor");
-
 const vendorControllers = require("../controllers/vendors");
 
 const Authenticator = require("../middlewares/authenticate");
 const MulterMiddleware = require("../middlewares/VendorMulter");
 const router = express.Router();
 
-router.post("/signup", vendorHandler.vendorHandler, vendorControllers.Signup);
+router.post("/signup",
+  MulterMiddleware.upload.single("image"),
+  vendorControllers.Signup
+);
 
-router.post("/googleOauth", vendorControllers.OauthGoogle);
-router.post("/facebookOauth", vendorControllers.OauthFacebook);
+// router.post("/googleOauth", vendorControllers.OauthGoogle);
+// router.post("/facebookOauth", vendorControllers.OauthFacebook);
 
 router.get("/signin", vendorControllers.Signin);
 router.get("/changepassword", vendorControllers.ChangePassword);
@@ -21,15 +23,15 @@ router.get(
   Authenticator.athenticate,
   vendorControllers.GetPendingVendors
 );
-router.put("/updateStatus", vendorControllers.UpdateStatus);
-router.put("/updateStatusblock", vendorControllers.UpdateStatusBlock);
-router.post("/updateStatusdelete", vendorControllers.DeleteVendor);
+// router.put("/updateStatus", vendorControllers.UpdateStatus);
+// router.put("/updateStatusblock", vendorControllers.UpdateStatusBlock);
+// router.post("/updateStatusdelete", vendorControllers.DeleteVendor);
 
-router.put(
-  "/updateVendor",
-  MulterMiddleware.upload,
-  vendorControllers.UpdateVendor
-);
+// router.put(
+//   "/updateVendor",
+//   MulterMiddleware.upload,
+//   vendorControllers.UpdateVendor
+// );
 router.post("/updateVendorMap", vendorControllers.UpdateVendorMap);
 router.get(
   "/getVendor",

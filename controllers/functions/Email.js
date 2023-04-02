@@ -9,7 +9,7 @@ exports.AdminEmail = async (vendor, type) => {
     secure: true,
     auth: {
       user: `${process.env.EMAIL_ADDRESS}`,
-      pass: `${process.env.EMAIL_PASSWORD}`,
+      pass: `${process.env.APP_PASS}`,
     },
   });
 
@@ -26,7 +26,7 @@ exports.AdminEmail = async (vendor, type) => {
   await transporter.verify();
 
   //Send Email
-  return await transporter.sendMail(mailOptions, (err, response) => {
+  return transporter.sendMail(mailOptions, (err, response) => {
     console.log(response);
 
     if (err) {

@@ -50,7 +50,6 @@ exports.Signup = async (req, res) => {
       }
 
       const customer = new Customer(req.body);
-      customer.fcmToken = "";
       customer.password = pass_customer;
       // const stripeCustomer = await AddCustomer(
       //   customer.name,
