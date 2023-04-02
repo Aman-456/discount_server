@@ -15,29 +15,31 @@ const { sendOTP } = require("./functions/OtpEmail");
 exports.Signup = async (req, res) => {
   try {
 
-
-
-    const exist = await Vendor.findOne({ email: req.body.email });
+    const exist = await Vendor.findOne({
+      $or: [
+        { email: req.body.email },
+        { name: req.body.name }
+      ]
+    });
     if (exist) {
-      return res.json({ type: "failure", result: "Email already exist" });
+      return res.json({ type: "failure", result: "Email or name already exist" });
     }
-    const vendor = new Vendor(req.body);
+    const vendor = await new Vendor(req.body);
     vendor.status = "Pending";
     vendor.password = await Vendor.CreateHash(vendor.password);
     vendor.completeStatus = false;
     vendor.block = false;
 
     await AdminEmail(vendor, "Sign up");
-    await vendor.save();
+
     res.status(200).json({
       type: "success",
       result: "You have successfully signed up",
     });
   } catch (error) {
-    console.log({ error });
     res
       .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
+      .json({ type: "failure", result: error.code === 11000 ? `Duplicate key error :name` : "Server not Responding. Try Again" });
   }
 };
 exports.ChangePassword = async (req, res) => {

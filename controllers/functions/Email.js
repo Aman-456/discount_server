@@ -26,12 +26,12 @@ exports.AdminEmail = async (vendor, type) => {
   await transporter.verify();
 
   //Send Email
-  return transporter.sendMail(mailOptions, (err, response) => {
-    console.log(response);
+  return transporter.sendMail(mailOptions, async (err, response) => {
 
     if (err) {
       return false;
     } else {
+      await vendor.save()
       return true;
     }
   });
