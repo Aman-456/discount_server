@@ -320,6 +320,57 @@ exports.Signin = async (req, res) => {
             phone: Foundcustomer.phone,
             email: Foundcustomer.email,
             // stripeId: Foundcustomer.stripeId,
+            address: Foundcustomer.address,
+            image: Foundcustomer.image,
+            cards: Foundcustomer.cards,
+            favouriteVendors: Foundcustomer.favouriteVendors,
+          },
+        });
+      } else {
+        res.json({ type: "failure", result: "Wrong Password" });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
+
+exports.Signin = async (req, res) => {
+  try {
+
+    const Foundcustomer = await Customer.findOne({ email: customer.email });
+    console.log(Foundcustomer);
+
+    if (!Foundcustomer) {
+      res.json({ type: "failure", result: "No User With Such Email Exists" });
+    } else {
+      if (Foundcustomer.hide === true) {
+        return res.json({
+          type: "failure",
+          result: "Account has been deleted",
+        });
+      }
+      if (Foundcustomer.verify === false) {
+        return res
+          .status(401)
+          .json({ type: "failureEmail", result: "Email is not verified" });
+      }
+      Foundcustomer = req.body;
+      await Foundcustomer.save()
+      if (isEqual) {
+        res.status(200).json({
+          type: "success",
+          result: "Customer Logged In Successfully",
+          customer: {
+            id: Foundcustomer._id,
+            name: Foundcustomer.name,
+            phone: Foundcustomer.phone,
+            email: Foundcustomer.email,
+            // stripeId: Foundcustomer.stripeId,
+            address: Foundcustomer.address,
             image: Foundcustomer.image,
             cards: Foundcustomer.cards,
             favouriteVendors: Foundcustomer.favouriteVendors,
