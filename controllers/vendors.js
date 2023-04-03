@@ -77,7 +77,7 @@ exports.ChangePassword = async (req, res) => {
 exports.Signin = async (req, res) => {
   try {
     var vendor = await Vendor.findOne(
-      { email: req.query.email.toLowerCase() },
+      { email: req.body.email.toLowerCase() },
       "name password completeStatus block admin status hide"
     );
     if (!vendor) {
@@ -103,16 +103,12 @@ exports.Signin = async (req, res) => {
       //   });
       // }
       const isEqual = await Vendor.isPasswordEqual(
-        req.query.password,
+        req.body.password,
         vendor.password
       );
       if (isEqual) {
         const token = await JWT.sign({ username: vendor.name }, JWT_SECRET_KEY);
-        if (req.query.fromMobile === "true") {
-          await Vendor.findByIdAndUpdate(vendor._id, {
-            $set: { fcmToken: req.query.fcmToken },
-          });
-        }
+
         res.status(200).json({
           type: "success",
           result: "Vendor Login Successfully",
@@ -399,70 +395,23 @@ exports.UpdateVendor = async (req, res) => {
   try {
     console.log(req.body);
 
-    const vendorID = req.query.vendorId;
+    const vendorID = req.body.vendorId;
     let oldVendor = await Vendor.findById(vendorID);
     req.body.dayStartTime = JSON.parse(req.body.dayStartTime);
     req.body.dayEndTime = JSON.parse(req.body.dayEndTime);
     let vendor = req.body;
-    let newFiles = vendor.newFiles;
-    delete vendor.newFiles;
-    vendor.dimension = {
-      width: vendor.width,
-      height: vendor.height,
-      length: vendor.length,
-    };
-    delete vendor.width;
-    delete vendor.length;
-    delete vendor.height;
-    vendor.completeStatus = true;
-    vendor.status = "Pending";
-
-    if (oldVendor.completeStatus) {
-      for (const key in vendor) {
-        if (vendor[key] === "null") {
-          delete vendor[key];
-        }
-      }
-      if (newFiles) {
-        await newFiles.forEach(async (field) => {
-          if (field === "image") {
-            if (oldVendor[field] === "assets/vendors/sample.jpg") {
-            } else {
-              fs.unlinkSync(oldVendor[field]);
-            }
-          } else if (field === "banner") {
-            if (oldVendor[field] === "assets/vendors/banner.jpg") {
-            } else {
-              fs.unlinkSync(oldVendor[field]);
-            }
-          } else {
-            fs.unlinkSync(oldVendor[field]);
-          }
-        });
-      }
-      const response = await Vendor.findByIdAndUpdate(oldVendor._id, {
-        $set: vendor,
-      });
-      await AdminEmail(vendor, "Complete Profile");
-
+    if (req.body.image) {
+      const filename = oldVendor.image
+      fs.unlinkSync("assets/vendor/" + filename);
+    }
+    const response = await Vendor.findByIdAndUpdate(oldVendor._id, {
+      $set: vendor,
+    });
+    if (response)
       res
         .status(200)
         .json({ type: "success", result: "Profile Updated Successfully" });
-    } else {
-      const response = await Vendor.findByIdAndUpdate(oldVendor._id, {
-        $set: vendor,
-      });
-      if (response) {
-        await AdminEmail(vendor, "Profile");
-        res
-          .status(200)
-          .json({ type: "success", result: "Profile Updated Successfully" });
-      } else {
-        res
-          .status(500)
-          .json({ type: "failure", result: "Server Not Responding" });
-      }
-    }
+
   } catch (error) {
     console.log(error);
     res.status(500).json({ type: "failure", result: "Server Not Responding" });

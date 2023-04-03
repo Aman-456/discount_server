@@ -15,7 +15,7 @@ router.post("/signup",
 // router.post("/googleOauth", vendorControllers.OauthGoogle);
 // router.post("/facebookOauth", vendorControllers.OauthFacebook);
 
-router.get("/signin", vendorControllers.Signin);
+router.post("/signin", vendorControllers.Signin);
 router.get("/changepassword", vendorControllers.ChangePassword);
 router.get("/getNearByVendors", vendorControllers.GetNearByVendors);
 router.get(
@@ -27,11 +27,11 @@ router.get(
 // router.put("/updateStatusblock", vendorControllers.UpdateStatusBlock);
 // router.post("/updateStatusdelete", vendorControllers.DeleteVendor);
 
-// router.put(
-//   "/updateVendor",
-//   MulterMiddleware.upload,
-//   vendorControllers.UpdateVendor
-// );
+router.post(
+  "/updateVendor",
+  MulterMiddleware.upload.single("image"),
+  vendorControllers.UpdateVendor
+);
 router.post("/updateVendorMap", vendorControllers.UpdateVendorMap);
 router.get(
   "/getVendor",

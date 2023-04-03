@@ -338,7 +338,7 @@ exports.Signin = async (req, res) => {
   }
 };
 
-exports.Signin = async (req, res) => {
+exports.Update = async (req, res) => {
   try {
 
     const Foundcustomer = await Customer.findOne({ email: customer.email });

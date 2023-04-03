@@ -3,7 +3,6 @@ const fs = require('fs');
 
 const destination = 'assets/customer';
 
-// Create destination directory if it doesn't exist
 if (!fs.existsSync(destination)) {
     fs.mkdirSync(destination, { recursive: true });
 }
