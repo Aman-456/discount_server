@@ -340,7 +340,7 @@ exports.Signin = async (req, res) => {
 
 exports.Update = async (req, res) => {
   try {
-
+    const customer = req.body
     const Foundcustomer = await Customer.findOne({ email: customer.email });
     console.log(Foundcustomer);
 
@@ -361,6 +361,10 @@ exports.Update = async (req, res) => {
       Foundcustomer = req.body;
       await Foundcustomer.save()
       if (isEqual) {
+        if (req.body.image) {
+          const filename = Foundcustomer.image
+          fs.unlinkSync("assets/vendor/" + filename);
+        }
         res.status(200).json({
           type: "success",
           result: "Customer Logged In Successfully",

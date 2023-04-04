@@ -1,7 +1,6 @@
 const Admin = require("../models/admin");
 const Order = require("../models/orders");
 const Vendor = require("../models/vendor");
-const { validationResult } = require("express-validator");
 const JWT = require("jsonwebtoken");
 require("dotenv").config();
 
@@ -9,30 +8,25 @@ const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 exports.Signup = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (errors.errors.length != 0) {
-      res.json({ type: "failure", result: errors.errors[0].msg });
-      return;
-    } else {
-      const admin = new Admin(req.body);
-      admin.password = await Admin.CreateHash(admin.password);
-      admin.save(async (err) => {
-        if (err && err.code === 11000) {
-          const keyName = Object.keys(err.keyValue)[0];
-          res.json({
-            type: "failure",
-            result:
-              keyName.charAt(0).toUpperCase() +
-              keyName.slice(1) +
-              " already Exist. Choose a Different Name",
-          });
-        } else {
-          res
-            .status(200)
-            .json({ type: "success", result: "Admin Registered Successfully" });
-        }
-      });
-    }
+    const admin = new Admin(req.body);
+    admin.password = await Admin.CreateHash(admin.password);
+    admin.save(async (err) => {
+      if (err && err.code === 11000) {
+        const keyName = Object.keys(err.keyValue)[0];
+        res.json({
+          type: "failure",
+          result:
+            keyName.charAt(0).toUpperCase() +
+            keyName.slice(1) +
+            " already Exist. Choose a Different Name",
+        });
+      } else {
+        res
+          .status(200)
+          .json({ type: "success", result: "Admin Registered Successfully" });
+      }
+    });
+
   } catch (error) {
     res
       .status(500)

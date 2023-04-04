@@ -406,7 +406,7 @@ exports.UpdateVendor = async (req, res) => {
     }
     const response = await Vendor.findByIdAndUpdate(oldVendor._id, {
       $set: vendor,
-    });
+    }, { new: true });
     if (response)
       res
         .status(200)
