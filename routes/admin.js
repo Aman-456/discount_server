@@ -15,6 +15,7 @@ router.post("/otpsend", adminController.OTP);
 router.post("/verifyotp", adminController.verifyOTP);
 router.post("/passwordchange", adminController.changePassword);
 
-router.get("/contact", adminController.Contact);
+router.post("/contact", adminController.Contact);
+router.get("/getcontacts", adminController.getContact);
 
 exports.routes = router;
