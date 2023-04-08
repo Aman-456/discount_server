@@ -251,7 +251,6 @@ exports.verifyOTP = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
   console.log("OTP" + req.body.email + req.body.password);
-
   const user = await Customer.findOne({ email: req.body.email });
   user.password = await Customer.CreateHash(req.body.password);
   user
