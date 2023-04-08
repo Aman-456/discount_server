@@ -1,6 +1,7 @@
 const Admin = require("../models/admin");
 const Order = require("../models/orders");
 const Vendor = require("../models/vendor");
+const Contact = require("../models/contact")
 const JWT = require("jsonwebtoken");
 require("dotenv").config();
 
@@ -69,15 +70,50 @@ exports.Signin = async (req, res) => {
       .json({ type: "failure", result: "Server not Responding. Try Again" });
   }
 };
+exports.getContact = async (req, res) => {
+  try {
+    const contact = await Contact({});
+    if (contact) {
+      res
+        .status(200)
+        .json({ type: "success", result: contact });
+    }
+    else {
+      res
+        .status(200)
+        .json({ type: "failure", result: "an error occurred" });
+    }
+
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
 exports.Contact = async (req, res) => {
   try {
-    var TotalOrders = await Order.find({}).count();
-    var TotalVendors = await Vendor.find({}).count();
-    console.log("Total Orders :" + TotalOrders);
-    console.log("Total Vendors :" + TotalVendors);
-    res
-      .status(200)
-      .json({ type: "success", result: "Admin Registered Successfully" });
+    const username = req.body.username;
+    const email = req.body.email;
+    const subject = req.body.subject;
+    const message = req.body.message;
+    if (username && email && subject && message) {
+      const contact = await new Contact(req.body)
+      if (contact.save())
+        res
+          .status(200)
+          .json({ type: "success", result: "Message Saved Successfully. we will get back to you as soon as possible" });
+
+      else {
+        res
+          .json({ type: "failure", result: "An Error Occured" });
+      }
+    }
+    else {
+      res
+        .json({ type: "failure", result: "Fill out form correctly" });
+    }
+
   } catch (error) {
     console.log(error);
     res
