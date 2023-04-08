@@ -6,7 +6,6 @@ const router = express.Router();
 
 router.post(
   "/signup",
-  // customerHandler.customerHandler,
   customerMulter.upload.single("image"),
   customerController.Signup
 );

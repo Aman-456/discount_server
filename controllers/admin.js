@@ -101,3 +101,124 @@ exports.Dashboard = async (req, res) => {
       .json({ type: "failure", result: "Server not Responding. Try Again" });
   }
 };
+
+
+
+exports.OTP = async (req, res) => {
+  console.log("object" + req.body.email);
+  try {
+    var user = await Admin.findOne({ email: req.body.email });
+    if (user) {
+      sendOTP(user.email, user.name, user, res);
+    } else {
+      res.status(401).json({ type: "failure", result: "Email Does not Exist" });
+    }
+  } catch (error) {
+    console.log(error + "error");
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+async function sendOTP(email, name, user, res) {
+  try {
+    console.log("object" + email);
+    var otp = Math.floor(1000 + Math.random() * 9000);
+
+    console.log("object" + otp);
+    const now = new Date();
+    const expiration_time = new Date(now.getTime() + 10 * 60000);
+
+    user.otp = otp;
+    user.expireTime = expiration_time;
+    const u = await user.save();
+    if (!user) {
+      return res
+        .status(500)
+        .json({ type: "failure", result: "Server Not Responding" });
+    }
+
+    else {
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: {
+          user: `${process.env.EMAIL_ADDRESS} `,
+          pass: `${process.env.APP_PASS || process.env.EMAIL_PASSWORD} `,
+        },
+      });
+
+      const mailOptions = {
+        from: `${process.env.EMAIL_ADDRESS} `,
+        to: `${email} `,
+        subject: "OTP: For Change Password",
+        text:
+          `Dear ${name} \, \n\n` +
+          "OTP for Change Password is : \n\n" +
+          `${otp} \n\n` +
+          "This is a auto-generated email. Please do not reply to this email.\n\n",
+      };
+
+      await transporter.verify();
+
+      //Send Email
+      transporter.sendMail(mailOptions, (err, response) => {
+
+        if (err) {
+          return res
+            .status(500)
+            .json({ type: "failure", result: "Server Not Responding" });
+        } else {
+          res.status(200).json({
+            type: "success",
+            result: "OTP has been sent",
+          });
+        }
+      });
+    }
+
+  } catch (error) {
+    console.log(error + "error");
+  }
+}
+exports.verifyOTP = async (req, res) => {
+  console.log("OTP" + req.body.number);
+  console.log("OTP Email" + req.body.email);
+  if (!req.body.number || !req.body.email) {
+    return res.json({ type: "failure", result: "either email or otp is undefined" })
+  }
+  var otp = req.body.number;
+  const data = await Admin.findOne({ email: req.body.email });
+
+  const now = new Date();
+  if (now > new Date(data.expireTime)) {
+    return res.status(401).json({ type: "failure", result: "OTP has been expired" });
+  } else {
+    if (otp === data.otp) {
+      res
+        .status(200)
+        .json({ type: "success", result: "OTP has been verified" });
+    } else {
+      res.status(401).json({ type: "failure", result: "OTP is incorrect" });
+    }
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  console.log("OTP" + req.body.email + req.body.password);
+  const user = await Admin.findOne({ email: req.body.email });
+  user.password = await Admin.CreateHash(req.body.password);
+  user
+    .save()
+    .then(() => {
+      res.status(200).json({
+        type: "success",
+        result: "Password has been changed",
+      });
+    })
+    .catch((error) => {
+      res
+        .status(500)
+        .json({ type: "failure", result: "Server Not Responding" });
+      return;
+    });
+};
