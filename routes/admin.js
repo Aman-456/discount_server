@@ -4,7 +4,6 @@ const adminHandler = require("../handlers/admin");
 
 const adminController = require("../controllers/admin");
 
-const Authenticator = require("../middlewares/authenticate");
 
 const router = express.Router();
 
