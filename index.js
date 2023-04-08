@@ -12,8 +12,8 @@ const customer = require("./routes/customer");
 const order = require("./routes/order");
 const application = require("./routes/application");
 
-const MySocket = require("./socket/socket");
-const socket = require("socket.io");
+// const MySocket = require("./socket/socket");
+// const socket = require("socket.io");
 
 require("dotenv").config();
 require("./db/connect");
@@ -55,6 +55,6 @@ server = app.listen(port, host, () => {
     console.log("Running Server at http://" + host + ":" + port);
 });
 
-let io = socket(server);
+// let io = socket(server);
 
-MySocket(io);
+// MySocket(io);
