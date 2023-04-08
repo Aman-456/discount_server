@@ -5,7 +5,9 @@ const Schema = mongoose.Schema;
 const AdminSchema = new Schema({
     id: Schema.ObjectId,
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
+    password: { type: String, required: true },
+    otp: { type: String },
+    expireTime: { type: Date },
 }, { timestamps: true });
 
 AdminSchema.statics.CreateHash = async (password) => {
