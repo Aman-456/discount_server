@@ -10,7 +10,6 @@ const item = require("./routes/items");
 const admin = require("./routes/admin");
 const customer = require("./routes/customer");
 const order = require("./routes/order");
-const application = require("./routes/application");
 
 
 require("dotenv").config();
@@ -45,7 +44,6 @@ app.use("/vendor", vendor.routes);
 app.use("/item", item.routes);
 app.use("/admin", admin.routes);
 app.use("/order", order.routes);
-app.use("/application", application.routes);
 
 
 server = app.listen(port, () => {
