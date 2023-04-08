@@ -1,4 +1,3 @@
-const { validationResult } = require("express-validator");
 const Vendor = require("../models/vendor");
 const Admin = require("../models/admin");
 const OrderModal = require("../models/orders");
@@ -10,7 +9,6 @@ const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 const nodemailer = require("nodemailer");
 const { AdminEmail } = require("./functions/Email");
 const { sendOTP } = require("./functions/OtpEmail");
-// const { AddCustomer } = require("./../externals/stripe");
 
 exports.Signup = async (req, res) => {
   try {

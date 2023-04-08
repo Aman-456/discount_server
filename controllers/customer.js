@@ -1,12 +1,10 @@
 const Customer = require("../models/customer");
-const { validationResult } = require("express-validator");
 const Vendor = require("../models/vendor");
 const Haversine = require("./functions/HaversineFormula");
 const nodemailer = require("nodemailer");
 var handlebars = require("handlebars");
 var fs = require("fs");
 const path = require("path")
-const { AddCustomer, AddCard } = require("./../externals/stripe");
 
 require("dotenv").config();
 
@@ -15,52 +13,40 @@ require("dotenv").config();
 exports.Signup = async (req, res) => {
   try {
     console.log(req.body);
-    const errors = validationResult(req);
-    if (errors.errors.length != 0) {
-      res.json({ type: "failure", result: errors.errors[0].msg });
-      return;
-    } else {
-      const exist = await Customer.findOne({ email: req.body.email });
-      if (exist && exist.hide === false) {
-        return res.json({ type: "failure", result: "Email already exist" });
-      }
-      const pass_customer = await Customer.CreateHash(req.body.password);
-      if (exist && exist.hide === true) {
-        const response = await Customer.findByIdAndUpdate(exist._id, {
-          $set: {
-            hide: false,
-            name: req.body.name,
-            password: pass_customer,
-            phone: req.body.phone,
-            address: req.body.address
-          },
-        });
-        if (!response) {
-          res.status(500).json({
-            type: "failure",
-            result: "Server not Responding. Try Again",
-          });
-          return;
-        }
-
-        return res.status(200).json({
-          type: "active",
-          result: "Customer Registered Successfully",
-        });
-      }
-
-      const customer = new Customer(req.body);
-      customer.password = pass_customer;
-      // const stripeCustomer = await AddCustomer(
-      //   customer.name,
-      //   customer.email,
-      //   "",
-      //   customer.phone,
-      //   ""
-      // );
-      // customer.stripeId = stripeCustomer.id;
-      sendEmail(customer.email, customer.name, customer, res);
+    const exist = await Customer.findOne({ email: req.body.email });
+    if (exist && exist.hide === false) {
+      return res.json({ type: "failure", result: "Email already exist" });
     }
+    const pass_customer = await Customer.CreateHash(req.body.password);
+    if (exist && exist.hide === true) {
+      const response = await Customer.findByIdAndUpdate(exist._id, {
+        $set: {
+          hide: false,
+          name: req.body.name,
+          password: pass_customer,
+          phone: req.body.phone,
+          address: req.body.address
+        },
+      });
+      if (!response) {
+        res.status(500).json({
+          type: "failure",
+          result: "Server not Responding. Try Again",
+        });
+        return;
+      }
+
+      return res.status(200).json({
+        type: "active",
+        result: "Customer Registered Successfully",
+      });
+    }
+
+    const customer = new Customer(req.body);
+    customer.password = pass_customer;
+
+    sendEmail(customer.email, customer.name, customer, res);
+
   } catch (error) {
     console.log(error);
     res
@@ -319,7 +305,6 @@ exports.Signin = async (req, res) => {
             name: Foundcustomer.name,
             phone: Foundcustomer.phone,
             email: Foundcustomer.email,
-            // stripeId: Foundcustomer.stripeId,
             address: Foundcustomer.address,
             image: Foundcustomer.image,
             cards: Foundcustomer.cards,
@@ -373,7 +358,6 @@ exports.Update = async (req, res) => {
             name: Foundcustomer.name,
             phone: Foundcustomer.phone,
             email: Foundcustomer.email,
-            // stripeId: Foundcustomer.stripeId,
             address: Foundcustomer.address,
             image: Foundcustomer.image,
             cards: Foundcustomer.cards,
@@ -577,7 +561,6 @@ exports.UpdateProfile = async (req, res) => {
               name: customerFound2.name,
               phone: customerFound2.phone,
               email: customerFound2.email,
-              stripeId: customerFound2.stripeId,
               cards: customerFound2.cards,
               favouriteVendors: customerFound2.favouriteVendors,
             },
@@ -629,31 +612,7 @@ exports.MakeUnFavourite = async (req, res) => {
   }
 };
 
-exports.InsertCard = async (req, res) => {
-  try {
-    const card = req.body.card;
-    const customerId = req.body.userID;
-    const stripeId = req.body.stripeId;
-    const customerCard = await AddCard(
-      stripeId,
-      card.cardNumber,
-      card.expMonth,
-      card.expYear,
-      card.cvc,
-      { message: "" }
-    );
-    card.cardId = customerCard.id;
-    const response = await Customer.findByIdAndUpdate(customerId, {
-      $push: { cards: [card] },
-    });
-    res
-      .status(200)
-      .json({ type: "success", result: "Customer Card Inserted", data: card });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ type: "failure", result: "Server Not Responding" });
-  }
-};
+
 
 exports.GetCustomers = async (req, res) => {
   try {
