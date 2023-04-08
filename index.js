@@ -12,12 +12,9 @@ const customer = require("./routes/customer");
 const order = require("./routes/order");
 const application = require("./routes/application");
 
-const MySocket = require("./socket/socket");
-const socket = require("socket.io");
 
 require("dotenv").config();
 require("./db/connect");
-// 
 app.use(cors());
 app.use(compression());
 
@@ -29,7 +26,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 const host = process.env.HOST;
 
 // app.use(morgan('dev'));
@@ -51,10 +48,7 @@ app.use("/order", order.routes);
 app.use("/application", application.routes);
 
 
-server = app.listen(port, host, () => {
+server = app.listen(port, () => {
     console.log("Running Server at http://" + host + ":" + port);
 });
 
-let io = socket(server);
-
-MySocket(io);
