@@ -1,7 +1,6 @@
 const express = require("express");
 
 const customerController = require("../controllers/customer");
-const customerHandler = require("../handlers/customer");
 const customerMulter = require("../middlewares/customerMulter");
 const router = express.Router();
 
@@ -18,19 +17,12 @@ router.post("/passwordchange", customerController.changePassword);
 router.post("/signin", customerController.Signin);
 router.post("/update", customerController.Update);
 router.post("/getCustomer", customerController.GetCustomer);
-router.get("/getLocations", customerController.GetLocationsForVendorsAndEvents);
-router.get(
-  "/getLocationsnearby",
-  customerController.GetLocationsForVendorsAndEventsNearby
-);
 
-router.get("/onLogout", customerController.OnLogout);
 router.post("/makeFavourite", customerController.MakeFavourite);
 router.post("/makeUnFavourite", customerController.MakeUnFavourite);
 
 router.get("/getCustomers", customerController.GetCustomers);
 router.get("/deletecustomeraccount", customerController.DeleteCustomerAccount);
-router.post("/insertCard", customerController.InsertCard);
 router.put("/updateProfile", customerController.UpdateProfile);
 router.put("/updatePassword", customerController.UpdatePassword);
 

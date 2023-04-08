@@ -69,6 +69,22 @@ exports.Signin = async (req, res) => {
       .json({ type: "failure", result: "Server not Responding. Try Again" });
   }
 };
+exports.Contact = async (req, res) => {
+  try {
+    var TotalOrders = await Order.find({}).count();
+    var TotalVendors = await Vendor.find({}).count();
+    console.log("Total Orders :" + TotalOrders);
+    console.log("Total Vendors :" + TotalVendors);
+    res
+      .status(200)
+      .json({ type: "success", result: "Admin Registered Successfully" });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
 exports.Dashboard = async (req, res) => {
   try {
     var TotalOrders = await Order.find({}).count();

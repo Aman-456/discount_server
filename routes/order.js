@@ -1,10 +1,8 @@
 const express = require("express");
-const stripeController = require("../controllers/stripe");
 const orderController = require("../controllers/order");
 
 const router = express.Router();
 
-router.post("/stripe", stripeController.StripePayment);
 router.get("/getOrder", orderController.GetOrder);
 router.get("/getallOrders", orderController.GetAllOrder);
 router.get("/getOrdersByVendorW", orderController.GetOrdersByVendorForWebsite);
