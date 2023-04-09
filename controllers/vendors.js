@@ -147,16 +147,7 @@ exports.GetNearByVendors = async (req, res) => {
   }
 };
 
-exports.GetPendingVendors = async (req, res) => {
-  try {
-    var result = await Vendor.find({ status: "Pending" });
-    res.status(200).json({ type: "success", result: result });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server Not Responding. Try Again" });
-  }
-};
+
 
 exports.UpdateProfile = async (req, res) => {
   try {

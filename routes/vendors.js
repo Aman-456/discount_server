@@ -15,12 +15,6 @@ router.post("/signup",
 router.post("/signin", vendorControllers.Signin);
 router.get("/changepassword", vendorControllers.ChangePassword);
 router.get("/getNearByVendors", vendorControllers.GetNearByVendors);
-router.get(
-  "/getPendingVendors",
-  Authenticator.athenticate,
-  vendorControllers.GetPendingVendors
-);
-
 
 router.post(
   "/updateVendor",

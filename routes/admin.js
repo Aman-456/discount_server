@@ -8,7 +8,7 @@ const adminController = require("../controllers/admin");
 const router = express.Router();
 
 router.post("/signup", adminHandler.adminHandler, adminController.Signup);
-router.get("/signin", adminController.Signin);
+router.post("/signin", adminController.Signin);
 router.get("/dashboard", adminController.Dashboard);
 
 router.post("/otpsend", adminController.OTP);
@@ -17,5 +17,6 @@ router.post("/passwordchange", adminController.changePassword);
 
 router.post("/contact", adminController.Contact);
 router.get("/getcontacts", adminController.getContact);
+router.get("/getvendorsrequests", adminController.getContact);
 
 exports.routes = router;
