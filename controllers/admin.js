@@ -272,3 +272,31 @@ exports.GetPendingVendors = async (req, res) => {
       .json({ type: "failure", result: "Server Not Responding. Try Again" });
   }
 };
+
+exports.ApproveVendor = async (req, res) => {
+  try {
+    console.log({ body: req.body });
+    var result = await Vendor.findOne({ _id: req.body.id });
+    if (result) {
+      result.status = "Accepted";
+
+      const r = await result.save()
+      if (r) {
+        const vendors = await Vendor.find({
+          status: "Pending"
+        })
+        res.status(200).json({ type: "success", result: vendors });
+      }
+      else {
+        res.json({ type: "failure", result: "Could update vendor" });
+      }
+    }
+    else {
+      res.json({ type: "failure", result: "No such vendor found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
+};

@@ -17,6 +17,8 @@ router.post("/passwordchange", adminController.changePassword);
 
 router.post("/contact", adminController.Contact);
 router.get("/getcontacts", adminController.getContact);
-router.get("/getvendorsrequests", adminController.getContact);
+router.get("/getvendorsrequests", adminController.GetPendingVendors);
+
+router.post("/approvevendor", adminController.ApproveVendor);
 
 exports.routes = router;
