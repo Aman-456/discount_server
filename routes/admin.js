@@ -5,7 +5,7 @@ const adminHandler = require("../handlers/admin");
 const adminController = require("../controllers/admin");
 
 
-const router = express.Router();
+const router = express.Router(); 
 
 router.post("/signup", adminHandler.adminHandler, adminController.Signup);
 router.get("/signin", adminController.Signin);
