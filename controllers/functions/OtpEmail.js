@@ -11,53 +11,55 @@ exports.sendOTP = async (email, name, user, res) => {
 
     user.otp = otp;
     user.expireTime = expiration_time;
-    user.save(async (err, data) => {
-      if (err) {
-        return res
-          .status(500)
-          .json({ type: "failure", result: "Server Not Responding" });
-      } else {
-        const transporter = nodemailer.createTransport({
-          host: "smtp.gmail.com",
-          port: 465,
-          secure: true,
-          auth: {
-            user: `${process.env.EMAIL_ADDRESS}`,
-            pass: `${process.env.EMAIL_PASSWORD}`,
-          },
-        });
 
-        const mailOptions = {
-          from: `${process.env.EMAIL_ADDRESS}`,
-          to: `${email}`,
-          subject: "OTP: For Change Password",
-          text:
-            `Dear ${name}\, \n\n` +
-            "OTP for Change Password is : \n\n" +
-            `${otp}\n\n` +
-            "This is a auto-generated email. Please do not reply to this email.\n\n",
-        };
+    await user.save()
+    if (!user) {
+      return res
+        .status(500)
+        .json({ type: "failure", result: "Server Not Responding" });
+    }
+    if (user) {
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: {
+          user: `${process.env.EMAIL_ADDRESS}`,
+          pass: `${process.env.APP_PASS || process.env.EMAIL_PASSWORD
+            }`,
+        },
+      });
 
-        await transporter.verify();
+      const mailOptions = {
+        from: `${process.env.EMAIL_ADDRESS}`,
+        to: `${email}`,
+        subject: "OTP: For Change Password",
+        text:
+          `Dear ${name}\, \n\n` +
+          "OTP for Change Password is : \n\n" +
+          `${otp}\n\n` +
+          "This is a auto-generated email. Please do not reply to this email.\n\n",
+      };
 
-        //Send Email
-        transporter.sendMail(mailOptions, (err, response) => {
-          console.log(response);
-          console.log(err);
+      await transporter.verify();
 
-          if (err) {
-            return res
-              .status(500)
-              .json({ type: "failure", result: "Server Not Responding" });
-          } else {
-            res.status(200).json({
-              type: "success",
-              result: "OTP has been sent",
-            });
-          }
-        });
-      }
-    });
+      //Send Email
+      transporter.sendMail(mailOptions, (err, response) => {
+        console.log(response);
+        console.log(err);
+
+        if (err) {
+          return res
+            .status(500)
+            .json({ type: "failure", result: "Server Not Responding" });
+        } else {
+          res.status(200).json({
+            type: "success",
+            result: "OTP has been sent",
+          });
+        }
+      });
+    }
   } catch (error) {
     console.log(error + "error");
   }

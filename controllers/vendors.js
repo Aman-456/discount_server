@@ -43,13 +43,13 @@ exports.Signup = async (req, res) => {
 exports.ChangePassword = async (req, res) => {
   try {
     console.log(req.query);
-    var admin = await Admin.findOne({ email: "info@inuaeats.com" });
+    var admin = await Admin.findOne({ email: req.body.email });
     const isEqual = await Admin.isPasswordEqual(
-      req.query.cpassword,
+      req.body.password,
       admin.password
     );
     if (isEqual) {
-      admin.password = await Admin.CreateHash(req.query.password);
+      admin.password = await Admin.CreateHash(req.body.password);
       const response = await admin.save();
       if (!response) {
         res.status(500).json({
@@ -74,10 +74,11 @@ exports.ChangePassword = async (req, res) => {
 };
 exports.Signin = async (req, res) => {
   try {
+    console.log(req.body);
     var vendor = await Vendor.findOne(
-      { email: req.body.email.toLowerCase() },
-      "name password completeStatus block admin status hide"
+      { email: req.body.email },
     );
+    console.log({ vendor });
     if (!vendor) {
       res.json({ type: "failure", result: "No User With Such Email Exists" });
     } else {
@@ -85,7 +86,7 @@ exports.Signin = async (req, res) => {
         return res.json({
           type: "block",
           result:
-            "Vendor has been deleted by admin contact info@inuaeats.com for further information",
+            "Vendor has been deleted by admin contact amanu4519@gmail.com for further information",
         });
       }
       if (vendor.block) {
@@ -94,12 +95,7 @@ exports.Signin = async (req, res) => {
           result: "Vendor has been blocked by admin",
         });
       }
-      // if (vendor.status === "Pending") {
-      //   return res.json({
-      //     type: "failure",
-      //     result: "Reqeust Pending",
-      //   });
-      // }
+
       const isEqual = await Vendor.isPasswordEqual(
         req.body.password,
         vendor.password
@@ -110,9 +106,7 @@ exports.Signin = async (req, res) => {
         res.status(200).json({
           type: "success",
           result: "Vendor Login Successfully",
-          token: token,
-          id: vendor._id,
-          completeStatus: vendor.completeStatus,
+          data: { ...vendor._doc, token }
         });
       } else {
         res.json({ type: "failure", result: "Wrong Password" });
@@ -153,16 +147,7 @@ exports.GetNearByVendors = async (req, res) => {
   }
 };
 
-exports.GetPendingVendors = async (req, res) => {
-  try {
-    var result = await Vendor.find({ status: "Pending" });
-    res.status(200).json({ type: "success", result: result });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server Not Responding. Try Again" });
-  }
-};
+
 
 exports.UpdateProfile = async (req, res) => {
   try {
@@ -488,7 +473,7 @@ exports.DeleteVendor = async (req, res) => {
 
 exports.OTP = async (req, res) => {
   try {
-    var vendor = await Vendor.findOne({ email: req.query.email });
+    var vendor = await Vendor.findOne({ email: req.body.email });
 
     if (vendor) {
       sendOTP(vendor.email, vendor.name, vendor, res);

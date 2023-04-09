@@ -3,6 +3,7 @@ const Order = require("../models/orders");
 const Vendor = require("../models/vendor");
 const Contact = require("../models/contact")
 const JWT = require("jsonwebtoken");
+const nodemailer = require("nodemailer")
 require("dotenv").config();
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
@@ -37,9 +38,9 @@ exports.Signup = async (req, res) => {
 
 exports.Signin = async (req, res) => {
   try {
-    const credientials = new Admin({
-      email: req.query.email,
-      password: req.query.password,
+    console.log(req.body);
+    const credientials = await Admin.findOne({
+      email: req.body.email,
     });
     const admin = await Admin.findOne({ email: credientials.email });
     if (!admin) {
@@ -48,16 +49,18 @@ exports.Signin = async (req, res) => {
         .json({ type: "failure", result: "No User With Such Email Exists" });
     } else {
       const isEqual = await Admin.isPasswordEqual(
-        credientials.password,
+        req.body.password,
         admin.password
       );
       if (isEqual) {
-        const token = await JWT.sign({ username: admin.name }, JWT_SECRET_KEY);
+        const token = await JWT.sign({ email: admin.email }, JWT_SECRET_KEY);
         res.status(200).json({
           type: "success",
           result: "Admin Login Successfully",
-          token: token,
-          id: admin._id,
+          data: {
+            token: token,
+            id: admin._id,
+          }
         });
       } else {
         res.status(200).json({ type: "failure", result: "Wrong Password" });
@@ -257,4 +260,15 @@ exports.changePassword = async (req, res) => {
         .json({ type: "failure", result: "Server Not Responding" });
       return;
     });
+};
+
+exports.GetPendingVendors = async (req, res) => {
+  try {
+    var result = await Vendor.find({ status: "Pending" });
+    res.status(200).json({ type: "success", result: result });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
 };
