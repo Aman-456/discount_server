@@ -1,6 +1,7 @@
 const Admin = require("../models/admin");
 const Order = require("../models/orders");
 const Vendor = require("../models/vendor");
+const customer = require("../models/customer");
 const Contact = require("../models/contact")
 const JWT = require("jsonwebtoken");
 const nodemailer = require("nodemailer")
@@ -267,6 +268,118 @@ exports.GetPendingVendors = async (req, res) => {
     var result = await Vendor.find({ status: "Pending" });
     res.status(200).json({ type: "success", result: result });
   } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
+};
+
+exports.UpdateVendor = async (req, res) => {
+  try {
+    console.log({ body: req.body });
+    var result = await Vendor.findOne({ _id: req.body.id });
+    if (result) {
+      result.status = req.body.status
+
+      const r = await result.save()
+      if (r) {
+        const vendors = await Vendor.find({
+          status: "Pending"
+        })
+        res.status(200).json({ type: "success", result: vendors });
+      }
+      else {
+        res.json({ type: "failure", result: "Could not update vendor" });
+      }
+    }
+    else {
+      res.json({ type: "failure", result: "No such vendor found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
+};
+
+exports.GetVendors = async (req, res) => {
+  try {
+
+    const vendors = await Vendor.find({ status: "Accepted" })
+    if (vendors)
+      res.status(200).json({ type: "success", result: vendors });
+    else {
+      res.json({ type: "failure", result: "No  vendor found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
+};
+
+
+exports.GetUsers = async (req, res) => {
+  try {
+
+    const users = await customer.find({})
+    if (users)
+      res.status(200).json({ type: "success", result: users });
+    else {
+      res.json({ type: "failure", result: "No customer found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
+};
+exports.DeleteUser = async (req, res) => {
+  try {
+
+    const users = await customer.findOneAndDelete({ _id: req.body.id })
+    if (users) {
+      const newusers = await customer.find({})
+      res.status(200).json({ type: "success", result: newusers });
+    }
+    else {
+      res.json({ type: "failure", result: "No customer found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
+};
+
+exports.GetNotices = async (req, res) => {
+  try {
+    const users = await Contact.find({ completed: false })
+    res.status(200).json({ type: "success", result: users });
+  }
+
+  catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
+};
+
+exports.NoticeComplete = async (req, res) => {
+
+  try {
+    console.log(req.body);
+    const complete = await Contact.findOneAndUpdate(
+      { _id: req.body.id },
+      { $set: { completed: true } }
+    )
+    if (complete) {
+      const notices = await Contact.find({ completed: false })
+      res.status(200).json({ type: "success", result: notices });
+
+    }
+  }
+  catch (error) {
     res
       .status(500)
       .json({ type: "failure", result: "Server Not Responding. Try Again" });

@@ -9,6 +9,7 @@ const ContactSchema = new Schema(
         email: { type: String, required: true },
         subject: { type: String, required: true },
         message: { type: String, required: true },
+        completed: { default: false, type: Boolean }
     },
     { timestamps: true }
 );

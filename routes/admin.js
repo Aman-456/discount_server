@@ -17,6 +17,13 @@ router.post("/passwordchange", adminController.changePassword);
 
 router.post("/contact", adminController.Contact);
 router.get("/getcontacts", adminController.getContact);
-router.get("/getvendorsrequests", adminController.getContact);
+router.get("/getvendorsrequests", adminController.GetPendingVendors);
+
+router.post("/updatestatus", adminController.UpdateVendor);
+router.get("/getvendors", adminController.GetVendors);
+router.get("/getusers", adminController.GetUsers);
+router.post("/deleteuser", adminController.DeleteUser);
+router.get("/getnotices", adminController.GetNotices);
+router.post("/completenotice", adminController.NoticeComplete);
 
 exports.routes = router;
