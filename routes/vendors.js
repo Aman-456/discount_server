@@ -42,9 +42,9 @@ router.post(
 router.get("/getvendors", vendorControllers.GetVendors);
 router.get("/onLogout", vendorControllers.OnLogout);
 
-router.get("/sendotp", vendorControllers.OTP);
+router.post("/otpsend", vendorControllers.OTP);
 router.post("/verifyotp", vendorControllers.verifyOTP);
-router.post("/changepassword", vendorControllers.changePassword);
+router.post("/passwordchange", vendorControllers.changePassword);
 router.post(
   "/getOrderswithtotalearning",
   vendorControllers.GetOrderswithTotalEarning

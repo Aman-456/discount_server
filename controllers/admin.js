@@ -3,6 +3,7 @@ const Order = require("../models/orders");
 const Vendor = require("../models/vendor");
 const Contact = require("../models/contact")
 const JWT = require("jsonwebtoken");
+const nodemailer = require("nodemailer")
 require("dotenv").config();
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
@@ -38,8 +39,8 @@ exports.Signup = async (req, res) => {
 exports.Signin = async (req, res) => {
   try {
     const credientials = new Admin({
-      email: req.query.email,
-      password: req.query.password,
+      email: req.body.email,
+      password: req.body.password,
     });
     const admin = await Admin.findOne({ email: credientials.email });
     if (!admin) {
@@ -56,8 +57,10 @@ exports.Signin = async (req, res) => {
         res.status(200).json({
           type: "success",
           result: "Admin Login Successfully",
-          token: token,
-          id: admin._id,
+          data: {
+            token: token,
+            id: admin._id,
+          }
         });
       } else {
         res.status(200).json({ type: "failure", result: "Wrong Password" });
