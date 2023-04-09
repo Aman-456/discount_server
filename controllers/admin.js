@@ -300,3 +300,19 @@ exports.ApproveVendor = async (req, res) => {
       .json({ type: "failure", result: "Server Not Responding. Try Again" });
   }
 };
+
+exports.GetVendors = async (req, res) => {
+  try {
+
+    const vendors = await Vendor.find({ status: "Accepted" })
+    if (vendors)
+      res.status(200).json({ type: "success", result: vendors });
+    else {
+      res.json({ type: "failure", result: "No  vendor found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
+};

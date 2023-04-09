@@ -20,5 +20,6 @@ router.get("/getcontacts", adminController.getContact);
 router.get("/getvendorsrequests", adminController.GetPendingVendors);
 
 router.post("/approvevendor", adminController.ApproveVendor);
+router.post("/getvendors", adminController.GetVendors);
 
 exports.routes = router;
