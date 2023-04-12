@@ -1,6 +1,5 @@
 const express = require("express");
 
-const itemHandler = require("../handlers/item");
 
 const itemController = require("../controllers/items");
 
@@ -13,20 +12,12 @@ const router = express.Router();
 router.post(
   "/addItem",
   MultipartData.upload.single("image"),
-  Authenticator.athenticate,
   Resizer.ResizeImage,
-  itemHandler.itemHandler,
   itemController.AddItem
 );
 router.get("/getItem", Authenticator.athenticate, itemController.GetItem);
 router.get("/getItemsByVendor", itemController.GetItemsByVendor);
-router.get(
-  "/getPendingItems",
-  Authenticator.athenticate,
-  itemController.GetPendingItems
-);
-//wow
-router.put("/updateStatus", itemController.UpdateStatus);
+
 router.delete("/deleteItem", itemController.DeleteItem);
 router.put(
   "/updateItem",

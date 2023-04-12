@@ -9,14 +9,10 @@ const ItemSchema = new Schema(
     name: { type: String, required: true, trim: true },
     price: { type: Number, required: true },
     description: { type: String, required: true, trim: true },
-    allergen: { type: String, required: true, trim: true },
-    discount: { type: Number, required: true },
     category: { type: String, required: true, trim: true },
     status: { type: String, required: true, trim: true },
     image: { type: String, required: true },
-    disabled: { type: Boolean, default: false },
-    hide: { type: Boolean, default: false },
-    soldOut: { type: Boolean, default: false },
+    stock: { type: Number, default: 1 },
   },
   { timestamps: true }
 );

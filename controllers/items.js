@@ -1,6 +1,5 @@
 const { validationResult } = require("express-validator");
 const Item = require("../models/item");
-const Customer = require("../models/customer");
 const Order = require("../models/orders");
 const fs = require("fs");
 const mongoose = require("../db/connect");
@@ -8,9 +7,6 @@ require("dotenv").config();
 
 exports.AddItem = async (req, res) => {
   try {
-    console.log("object" + JSON.stringify(req.body));
-    console.log("object" + req.body.discount);
-
     const item = new Item(req.body);
     item.status = "Accepted";
     const errors = validationResult(req);
@@ -85,8 +81,7 @@ exports.GetItemsByVendor = async (req, res) => {
   try {
     const vendorId = req.query.vendorId;
     const items = await Item.find(
-      { vendor: vendorId, status: "Accepted", hide: false },
-      "image name price description discount category allergen soldOut disabled"
+      { vendor: vendorId, status: "Accepted" },
     );
     const average = await Order.aggregate([
       {
@@ -126,9 +121,7 @@ exports.UpdateItem = async (req, res) => {
         category: newItem.category,
         description: newItem.description,
         image: newItem.image,
-        allergen: newItem.allergen,
         soldOut: newItem.soldOut,
-        disabled: newItem.disabled,
         discount: newItem.discount,
       },
     });
@@ -149,46 +142,8 @@ exports.UpdateItem = async (req, res) => {
   }
 };
 
-exports.GetPendingItems = async (req, res) => {
-  try {
-    const items = await Item.find(
-      { status: "Pending" },
-      "name price image category"
-    ).populate("vendor", "name");
-    res.status(200).json({ type: "success", result: items });
-  } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
-  }
-};
 
-exports.UpdateStatus = async (req, res) => {
-  try {
-    const itemId = req.query.itemId;
-    const action = req.query.action;
-    const response = await Item.findByIdAndUpdate(itemId, {
-      $set: { status: action },
-    });
-    if (!response) {
-      res
-        .status(500)
-        .json({ type: "failure", result: "Server not Responding. Try Again" });
-      return;
-    }
-    const items = await Item.find(
-      { status: "Pending" },
-      "name price image category"
-    ).populate("vendor");
-    res.status(200).json({ type: "success", result: items });
-  } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
-  }
-};
+
 
 exports.UpdateItemWithoutImage = async (req, res) => {
   try {
@@ -202,9 +157,7 @@ exports.UpdateItemWithoutImage = async (req, res) => {
         category: newItem.category,
         description: newItem.description,
         discount: newItem.discount,
-        disabled: newItem.disabled,
         soldOut: newItem.soldOut,
-        allergen: newItem.allergen,
       },
     });
     if (!response) {

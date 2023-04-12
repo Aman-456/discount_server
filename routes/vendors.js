@@ -24,7 +24,6 @@ router.post(
 router.post("/updateVendorMap", vendorControllers.UpdateVendorMap);
 router.get(
   "/getVendor",
-  // Authenticator.athenticate,
   vendorControllers.GetVendor
 );
 

@@ -378,7 +378,7 @@ exports.UpdateVendor = async (req, res) => {
   try {
     console.log(req.body);
 
-    const vendorID = req.body.vendorId;
+    const vendorID = req.body._id;
     let oldVendor = await Vendor.findById(vendorID);
     req.body.dayStartTime = JSON.parse(req.body.dayStartTime);
     req.body.dayEndTime = JSON.parse(req.body.dayEndTime);
@@ -393,7 +393,7 @@ exports.UpdateVendor = async (req, res) => {
     if (response)
       res
         .status(200)
-        .json({ type: "success", result: "Profile Updated Successfully" });
+        .json({ type: "success", result: "Profile Updated Successfully", data: response });
 
   } catch (error) {
     console.log(error);
