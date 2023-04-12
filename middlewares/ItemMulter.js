@@ -5,7 +5,7 @@ const destination = 'assets/items';
 
 if (!fs.existsSync(destination)) {
     fs.mkdirSync(destination, { recursive: true });
-}
+} 
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {

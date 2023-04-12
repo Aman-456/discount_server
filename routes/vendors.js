@@ -22,7 +22,7 @@ router.post(
   vendorControllers.UpdateVendor
 );
 router.post("/updateVendorMap", vendorControllers.UpdateVendorMap);
-router.get(
+router.post(
   "/getVendor",
   vendorControllers.GetVendor
 );

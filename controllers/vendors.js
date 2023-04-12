@@ -364,7 +364,7 @@ exports.OauthFacebook = async (req, res) => {
 
 exports.GetVendor = async (req, res) => {
   try {
-    var result = await Vendor.findById(req.query.vendorId);
+    var result = await Vendor.findById(req.body.id);
     res.status(200).json({ type: "success", result: result });
   } catch (error) {
     res
@@ -380,14 +380,14 @@ exports.UpdateVendor = async (req, res) => {
 
     const vendorID = req.body._id;
     let oldVendor = await Vendor.findById(vendorID);
-    req.body.dayStartTime = JSON.parse(req.body.dayStartTime);
-    req.body.dayEndTime = JSON.parse(req.body.dayEndTime);
+    // req.body.dayStartTime = JSON.parse(req.body.dayStartTime);
+    // req.body.dayEndTime = JSON.parse(req.body.dayEndTime);
     let vendor = req.body;
     if (req.body.image) {
       const filename = oldVendor.image
-      fs.unlinkSync("assets/vendor/" + filename);
+      fs.unlinkSync(filename);
     }
-    const response = await Vendor.findByIdAndUpdate(oldVendor._id, {
+    let response = await Vendor.findByIdAndUpdate(oldVendor._id, {
       $set: vendor,
     }, { new: true });
     if (response)
