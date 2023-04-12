@@ -8,28 +8,23 @@ require("dotenv").config();
 exports.AddItem = async (req, res) => {
   try {
     const item = new Item(req.body);
-    item.status = "Accepted";
-    const errors = validationResult(req);
-    if (errors.errors.length != 0) {
-      console.log(errors);
-      fs.unlinkSync(item.image);
-      res.json({ type: "failure", result: errors.errors[0].msg });
-      return;
-    } else {
-      const response = await item.save();
-      if (!response) {
-        res.status(500).json({
-          type: "failure",
-          result: "Server not Responding. Try Again",
-        });
-        return;
-      }
-      res.status(200).json({
-        type: "success",
-        result: "Item added successfully",
+
+    const response = await item.save();
+    if (!response) {
+      res.status(500).json({
+        type: "failure",
+        result: "Server not Responding. Try Again",
       });
+      return;
     }
+    res.status(200).json({
+      type: "success",
+      result: "Item added successfully",
+    });
+
   } catch (error) {
+    fs.unlinkSync(req.body.image);
+
     console.log(error);
     res
       .status(500)
@@ -51,24 +46,22 @@ exports.GetItem = async (req, res) => {
 
 exports.DeleteItem = async (req, res) => {
   try {
-    const itemId = req.query.itemId;
-    console.log(itemId);
-    const item = await Item.findOne({ _id: itemId });
-    console.log(item);
-    console.log(item.image);
-    fs.unlinkSync(item.image);
-    const response = await item.remove();
-    if (!response) {
+    const itemId = req.body.id;
+    const item = await Item.findOneAndDelete({ _id: itemId });
+    if (!item) {
       res.status(500).json({
         type: "failure",
         result: "Server not Responding. Try Again",
       });
       return;
     }
-
+    fs.unlinkSync(item.image);
+    const items = await Item.find({
+      vendor: req.body.vendor
+    })
     res
       .status(200)
-      .json({ type: "success", result: "Item Deleted Successfully" });
+      .json({ type: "success", result: "Item Deleted Successfully", data: items });
   } catch (error) {
     console.log(error);
     res
@@ -77,27 +70,18 @@ exports.DeleteItem = async (req, res) => {
   }
 };
 exports.GetItemsByVendor = async (req, res) => {
-  console.log("object");
   try {
-    const vendorId = req.query.vendorId;
+    const vendorId = req.body.vendor;
     const items = await Item.find(
-      { vendor: vendorId, status: "Accepted" },
-    );
-    const average = await Order.aggregate([
-      {
-        $match: {
-          review: { $ne: null },
-          vendor: mongoose.Types.ObjectId(vendorId),
-        },
-      },
-      { $group: { _id: "$vendor", average: { $avg: "$review.rating" } } },
-    ]);
-    if (average.length === 0) {
-      res.status(200).json({ type: "success", result: items, average: 0 });
+      { vendor: vendorId },
+    ).populate("vendor")
+
+    if (items) {
+      res.status(200).json({ type: "success", result: items });
     } else {
       res
         .status(200)
-        .json({ type: "success", result: items, average: average[0].average });
+        .json({ type: "failure", result: "no items found" });
     }
   } catch (error) {
     console.log(error);
@@ -110,30 +94,23 @@ exports.GetItemsByVendor = async (req, res) => {
 exports.UpdateItem = async (req, res) => {
   try {
     console.log(req.body);
-    const itemId = req.query.itemId;
-    const newItem = new Item(req.body);
+    const itemId = req.body.id;
     const item = await Item.findById(itemId);
-    fs.unlinkSync(item.image);
-    const response = await Item.findByIdAndUpdate(itemId, {
-      $set: {
-        name: newItem.name,
-        price: newItem.price,
-        category: newItem.category,
-        description: newItem.description,
-        image: newItem.image,
-        soldOut: newItem.soldOut,
-        discount: newItem.discount,
-      },
-    });
+    if (req.body.image)
+      fs.unlinkSync(item.image);
+    const response = await Item.findByIdAndUpdate(itemId, { $set: req.body });
     if (!response) {
       res
         .status(500)
         .json({ type: "failure", result: "Server not Responding. Try Again" });
       return;
     }
+    const items = await Item.find({
+      vendor: req.body.vendor
+    })
     res
       .status(200)
-      .json({ type: "success", result: "Item Updated Successfully" });
+      .json({ type: "success", result: "Item Updated Successfully", data: items });
   } catch (error) {
     console.log(error);
     res
@@ -144,35 +121,3 @@ exports.UpdateItem = async (req, res) => {
 
 
 
-
-exports.UpdateItemWithoutImage = async (req, res) => {
-  try {
-    console.log(req.body);
-    const newItem = new Item(req.body);
-    const item = await Item.findById(newItem.id);
-    const response = await Item.findByIdAndUpdate(item._id, {
-      $set: {
-        name: newItem.name,
-        price: newItem.price,
-        category: newItem.category,
-        description: newItem.description,
-        discount: newItem.discount,
-        soldOut: newItem.soldOut,
-      },
-    });
-    if (!response) {
-      res
-        .status(500)
-        .json({ type: "failure", result: "Server not Responding. Try Again" });
-      return;
-    }
-    res
-      .status(200)
-      .json({ type: "success", result: "Item Updated Successfully" });
-  } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
-  }
-};

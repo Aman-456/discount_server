@@ -16,20 +16,14 @@ router.post(
   itemController.AddItem
 );
 router.get("/getItem", Authenticator.athenticate, itemController.GetItem);
-router.get("/getItemsByVendor", itemController.GetItemsByVendor);
+router.post("/getItemsByVendor", itemController.GetItemsByVendor);
 
-router.delete("/deleteItem", itemController.DeleteItem);
-router.put(
+router.post("/deleteItem", itemController.DeleteItem);
+router.post(
   "/updateItem",
   MultipartData.upload.single("image"),
-  Authenticator.athenticate,
   Resizer.ResizeImage,
   itemController.UpdateItem
-);
-router.put(
-  "/updateItemWithoutImage",
-  Authenticator.athenticate,
-  itemController.UpdateItemWithoutImage
 );
 
 exports.routes = router;
