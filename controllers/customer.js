@@ -345,10 +345,17 @@ exports.Update = async (req, res) => {
       Foundcustomer = req.body;
       await Foundcustomer.save()
       if (isEqual) {
+
         if (req.body.image) {
-          const filename = Foundcustomer.image
-          fs.unlinkSync("assets/vendor/" + filename);
+          const filename = Foundcustomer.image;
+          if (fs.existsSync(filename)) {
+            fs.unlinkSync(filename);
+            console.log(`${filename} deleted successfully`);
+          } else {
+            console.log(`${filename} does not exist`);
+          }
         }
+
         res.status(200).json({
           type: "success",
           result: "Customer Logged In Successfully",

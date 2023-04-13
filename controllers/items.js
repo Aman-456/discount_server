@@ -23,7 +23,13 @@ exports.AddItem = async (req, res) => {
     });
 
   } catch (error) {
-    fs.unlinkSync(req.body.image);
+
+    if (fs.existsSync(req.body.image)) {
+      fs.unlinkSync(req.body.image);
+      console.log(`${req.body.image} deleted successfully`);
+    } else {
+      console.log(`${req.body.image} does not exist`);
+    }
 
     console.log(error);
     res
@@ -77,6 +83,13 @@ exports.DeleteItem = async (req, res) => {
       return;
     }
     fs.unlinkSync(item.image);
+    if (fs.existsSync(item.image)) {
+      fs.unlinkSync(item.image);
+      console.log(`${item.image} deleted successfully`);
+    } else {
+      console.log(`${item.image} does not exist`);
+    }
+
     const items = await Item.find({
       vendor: req.body.vendor
     })
@@ -137,7 +150,12 @@ exports.UpdateItem = async (req, res) => {
     const itemId = req.body.id;
     const item = await Item.findById(itemId);
     if (req.body.image)
-      fs.unlinkSync(item.image);
+      if (fs.existsSync(item.image)) {
+        fs.unlinkSync(item.image);
+        console.log(`${item.image} deleted successfully`);
+      } else {
+        console.log(`${item.image} does not exist`);
+      }
     const response = await Item.findByIdAndUpdate(itemId, { $set: req.body });
     if (!response) {
       res

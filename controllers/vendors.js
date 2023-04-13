@@ -156,7 +156,12 @@ exports.UpdateProfile = async (req, res) => {
     const oldVendor = await Vendor.findById(vendorId);
     if (oldVendor.image === "assets/vendors/sample.jpg") {
     } else {
-      fs.unlinkSync(oldVendor.image);
+      if (fs.existsSync(oldVendor.image)) {
+        fs.unlinkSync(oldVendor.image);
+        console.log(`${oldVendor.image} deleted successfully`);
+      } else {
+        console.log(`${oldVendor.image} does not exist`);
+      }
     }
     const response = await Vendor.findByIdAndUpdate(vendorId, {
       $set: {
@@ -395,8 +400,13 @@ exports.UpdateVendor = async (req, res) => {
     // req.body.dayEndTime = JSON.parse(req.body.dayEndTime);
     let vendor = req.body;
     if (req.body.image) {
-      const filename = oldVendor.image
-      fs.unlinkSync(filename);
+      const filename = oldVendor.image;
+      if (fs.existsSync(filename)) {
+        fs.unlinkSync(filename);
+        console.log(`${filename} deleted successfully`);
+      } else {
+        console.log(`${filename} does not exist`);
+      }
     }
     let response = await Vendor.findByIdAndUpdate(oldVendor._id, {
       $set: vendor,
