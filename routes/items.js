@@ -18,6 +18,8 @@ router.post(
 router.post("/getItem", itemController.GetItem);
 router.get("/getlatestsix", itemController.GetLatest6);
 router.post("/getItemsByVendor", itemController.GetItemsByVendor);
+router.get("/getfeatured", itemController.GetFeaturedProducts);
+router.get("/getall", itemController.GetAll);
 
 router.post("/deleteItem", itemController.DeleteItem);
 router.post(

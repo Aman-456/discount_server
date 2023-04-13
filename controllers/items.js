@@ -114,6 +114,22 @@ exports.GetItemsByVendor = async (req, res) => {
       .json({ type: "failure", result: "Server not Responding. Try Again" });
   }
 };
+exports.GetFeaturedProducts = async (req, res) => {
+  try {
+
+    // Get a random selection of 16 items
+    const items = await Item.aggregate([
+      { $sample: { size: 16 } }
+    ]);
+    return res.json({ type: "success", result: items });
+
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
 
 exports.UpdateItem = async (req, res) => {
   try {
@@ -135,6 +151,22 @@ exports.UpdateItem = async (req, res) => {
     res
       .status(200)
       .json({ type: "success", result: "Item Updated Successfully", data: items });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
+
+exports.GetAll = async (req, res) => {
+  try {
+    const item = await Item.find({})
+      .sort({ $natural: -1 })
+      .populate("vendor")
+    res
+      .status(200)
+      .json({ type: "success", result: "Item Updated Successfully", data: item });
   } catch (error) {
     console.log(error);
     res
