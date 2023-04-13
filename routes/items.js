@@ -15,7 +15,8 @@ router.post(
   Resizer.ResizeImage,
   itemController.AddItem
 );
-router.get("/getItem", Authenticator.athenticate, itemController.GetItem);
+router.get("/getItem", itemController.GetItem);
+router.get("/getlatestsix", itemController.GetLatest6);
 router.post("/getItemsByVendor", itemController.GetItemsByVendor);
 
 router.post("/deleteItem", itemController.DeleteItem);

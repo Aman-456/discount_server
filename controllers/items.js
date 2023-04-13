@@ -43,6 +43,19 @@ exports.GetItem = async (req, res) => {
       .json({ type: "failure", result: "Server not Responding. Try Again" });
   }
 };
+exports.GetLatest6 = async (req, res) => {
+  try {
+    const item = await Item.find({})
+      .sort({ $natural: -1 })
+      .populate("vendor");
+
+    res.status(200).json({ type: "success", result: item });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
 
 exports.DeleteItem = async (req, res) => {
   try {
@@ -74,7 +87,10 @@ exports.GetItemsByVendor = async (req, res) => {
     const vendorId = req.body.vendor;
     const items = await Item.find(
       { vendor: vendorId },
-    ).populate("vendor")
+    )
+      .populate("vendor")
+      .sort({ $natural: -1 })
+
 
     if (items) {
       res.status(200).json({ type: "success", result: items });

@@ -33,6 +33,7 @@ router.post(
   vendorControllers.UpdateOnlineStatus
 );
 router.get("/getvendors", vendorControllers.GetVendors);
+router.get("/getsixvendors", vendorControllers.Getsixvendors);
 router.get("/onLogout", vendorControllers.OnLogout);
 
 router.post("/otpsend", vendorControllers.OTP);

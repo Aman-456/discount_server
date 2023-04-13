@@ -372,6 +372,17 @@ exports.GetVendor = async (req, res) => {
       .json({ type: "failure", result: "Server Not Responding. Try Again" });
   }
 };
+exports.Getsixvendors = async (req, res) => {
+  try {
+    var result = await Vendor.find({}).limit(6);
+    res.status(200).json({ type: "success", result: result });
+  } catch (error) {
+    console.log({ error });
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
+};
 
 
 exports.UpdateVendor = async (req, res) => {
@@ -440,6 +451,15 @@ exports.UpdateOnlineStatus = async (req, res, next) => {
   }
 };
 
+exports.GetVendors = async (req, res) => {
+  try {
+    const response = await Vendor.find();
+    res.status(200).json({ type: "success", result: response });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
 exports.GetVendors = async (req, res) => {
   try {
     const response = await Vendor.find();
