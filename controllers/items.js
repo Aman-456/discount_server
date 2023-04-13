@@ -34,9 +34,17 @@ exports.AddItem = async (req, res) => {
 
 exports.GetItem = async (req, res) => {
   try {
-    const itemId = req.query.itemId;
+    const itemId = req.body.id;
     const item = await Item.findById(itemId);
-    res.status(200).json({ type: "success", result: item });
+    const relative = await Item.find({
+      $or: [
+        { category: item.category },
+        { name: { $regex: item.name, $options: 'i' } }
+      ],
+      _id: { $ne: item._id }
+    }).populate("vendor")
+
+    res.status(200).json({ type: "success", result: item, relative });
   } catch (error) {
     res
       .status(500)

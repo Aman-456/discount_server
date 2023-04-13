@@ -15,7 +15,7 @@ router.post(
   Resizer.ResizeImage,
   itemController.AddItem
 );
-router.get("/getItem", itemController.GetItem);
+router.post("/getItem", itemController.GetItem);
 router.get("/getlatestsix", itemController.GetLatest6);
 router.post("/getItemsByVendor", itemController.GetItemsByVendor);
 
