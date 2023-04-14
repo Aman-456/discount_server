@@ -232,7 +232,7 @@ async function sendEmail(email, name, vendors, res, action) {
       to: email,
       subject: `Profile ${action}`,
 
-      text: `Dear ${name} Your profile has been ${action} on inuaeats.com ,Please check your portal for the status`,
+      text: `Dear ${name} Your profile has been ${action} on discountbazar,Please check your portal for the status`,
     };
 
     await transporter.verify();

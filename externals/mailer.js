@@ -29,7 +29,7 @@ exports.sendEmail = async (email, subject, template) => {
         from: user,
         to: email,
         subject: subject,
-        text: "Hello from Inuaeats",
+        text: "Hello from Discount Bazar",
         html: template
     }
     transporter.sendMail(mailOptions).then(

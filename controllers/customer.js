@@ -80,7 +80,7 @@ async function sendEmail(email, name, user, res) {
         pass: `${process.env.APP_PASS || process.env.EMAIL_PASSWORD}`,
       },
     });
-    const URL = `http://${process.env.HOST}:${5000}/customer/verify?token=${user._id} `;
+    const URL = `http://https://discountbazar.netlify.app/customer/verify?token=${user._id} `;
     readHTMLFile(
       "./templates/emailverification.html",
       async function (err, html) {
@@ -136,7 +136,7 @@ exports.Verify = async (req, res) => {
   var user = await Customer.findOne({ _id: Id });
   if (user) {
     if (user.verify == true) {
-      return res.redirect("http://localhost:3000")
+      return res.redirect(`${process.env.HOST == "localhost" ? "http://localhost:3000" : "https://discountbazar.netlify.app"}`)
     }
     user.verify = true;
     await user.save()
