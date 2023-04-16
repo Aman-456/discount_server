@@ -82,7 +82,6 @@ exports.DeleteItem = async (req, res) => {
       });
       return;
     }
-    fs.unlinkSync(item.image);
     if (fs.existsSync(item.image)) {
       fs.unlinkSync(item.image);
       console.log(`${item.image} deleted successfully`);
@@ -92,7 +91,7 @@ exports.DeleteItem = async (req, res) => {
 
     const items = await Item.find({
       vendor: req.body.vendor
-    })
+    }).sort({ $natural: -1 })
     res
       .status(200)
       .json({ type: "success", result: "Item Deleted Successfully", data: items });
