@@ -1,6 +1,6 @@
 const Customer = require("../models/customer");
 const Vendor = require("../models/vendor");
-const Haversine = require("./functions/HaversineFormula");
+// const Haversine = require("./functions/HaversineFormula");
 const nodemailer = require("nodemailer");
 var handlebars = require("handlebars");
 var fs = require("fs");
@@ -80,7 +80,7 @@ async function sendEmail(email, name, user, res) {
         pass: `${process.env.APP_PASS || process.env.EMAIL_PASSWORD}`,
       },
     });
-    const URL = `http://https://discountbazar.netlify.app/customer/verify?token=${user._id} `;
+    const URL = `https://discountbazar.netlify.app/customer/verify?token=${user._id} `;
     readHTMLFile(
       "./templates/emailverification.html",
       async function (err, html) {

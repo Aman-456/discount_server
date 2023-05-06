@@ -1,5 +1,6 @@
 const Vendor = require("../models/vendor");
 const Admin = require("../models/admin");
+const customer = require("../models/customer");
 const OrderModal = require("../models/orders");
 const mongoose = require("mongoose");
 const JWT = require("jsonwebtoken");
@@ -276,97 +277,6 @@ exports.UpdateStatusBlock = async (req, res) => {
   }
 };
 
-exports.OauthGoogle = async (req, res) => {
-  try {
-    const { email, name, image, googleId } = req.body;
-    const exist = await Vendor.findOne({ email: email });
-    const token = await JWT.sign({ username: name }, JWT_SECRET_KEY);
-    if (exist) {
-      res.status(200).json({
-        type: "success",
-        result: "Already Registered",
-        token: token,
-        vendor: exist,
-      });
-      return;
-    }
-    const vendor = new Vendor({
-      name: name,
-      email: email,
-      image: "assets/vendors/sample.jpg",
-      provider: { type: "google", providerId: googleId },
-      completeStatus: false,
-      status: "Pending",
-      latitude: "",
-      longitude: "",
-      address: "",
-    });
-    const response = await vendor.save();
-    if (!response) {
-      res
-        .status(500)
-        .json({ type: "failure", result: "Server not Responding. Try Again" });
-      return;
-    }
-    res.status(200).json({
-      type: "success",
-      result: "Vendor Registered",
-      token: token,
-      vendor: response,
-    });
-  } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
-  }
-};
-
-exports.OauthFacebook = async (req, res) => {
-  try {
-    const { email, name, userId } = req.body;
-    const exist = await Vendor.findOne({ email: email });
-    const token = await JWT.sign({ username: name }, JWT_SECRET_KEY);
-    if (exist) {
-      res.status(200).json({
-        type: "success",
-        result: "Already Registered",
-        token: token,
-        vendor: exist,
-      });
-      return;
-    }
-    const vendor = new Vendor({
-      name: name,
-      email: email,
-      image: "assets/vendors/sample.jpg",
-      provider: { type: "facebook", providerId: userId },
-      completeStatus: false,
-      status: "Pending",
-      latitude: "",
-      longitude: "",
-      address: "",
-    });
-    const response = await vendor.save();
-    if (!response) {
-      res
-        .status(500)
-        .json({ type: "failure", result: "Server not Responding. Try Again" });
-      return;
-    }
-    res.status(200).json({
-      type: "success",
-      result: "Vendor Registered",
-      token: token,
-      vendor: response,
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
-  }
-};
-
 exports.GetVendor = async (req, res) => {
   try {
     var result = await Vendor.findById(req.body.id);
@@ -627,4 +537,51 @@ exports.GetOrderswithTotalEarning = async (req, res) => {
     res.status(500).json({ type: "failure", result: "Server Not Responding" });
     return;
   }
+};
+
+
+exports.Dashboard = async (req, res) => {
+  try {
+    const id = req.query.id
+    const TotalOrders = await OrderModal.find({ vendor: id });
+
+    const labels = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    const userCounts = labels.map((month) =>
+      TotalOrders.filter((order) => order.createdAt.getMonth() === labels.indexOf(month)).length
+    );
+
+
+
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Orders',
+          data: userCounts,
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        }
+      ],
+    };
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server Error' });
+  }
+
 };

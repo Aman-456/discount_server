@@ -4,12 +4,12 @@ const bodyparser = require("body-parser");
 const cors = require("cors");
 const morgan = require("morgan");
 const compression = require("compression");
-
 const vendor = require("./routes/vendors");
 const item = require("./routes/items");
 const admin = require("./routes/admin");
 const customer = require("./routes/customer");
 const order = require("./routes/order");
+const cart = require("./routes/cart");
 
 
 require("dotenv").config();
@@ -44,6 +44,7 @@ app.use("/vendor", vendor.routes);
 app.use("/item", item.routes);
 app.use("/admin", admin.routes);
 app.use("/order", order.routes);
+app.use("/cart", cart.routes);
 
 
 server = app.listen(port, () => {

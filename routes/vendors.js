@@ -39,6 +39,7 @@ router.get("/onLogout", vendorControllers.OnLogout);
 router.post("/otpsend", vendorControllers.OTP);
 router.post("/verifyotp", vendorControllers.verifyOTP);
 router.post("/passwordchange", vendorControllers.changePassword);
+router.get("/dashboard", vendorControllers.Dashboard);
 router.post(
   "/getOrderswithtotalearning",
   vendorControllers.GetOrderswithTotalEarning
