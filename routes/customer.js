@@ -13,7 +13,9 @@ router.post("/otpsend", customerController.OTP);
 router.post("/verifyotp", customerController.verifyOTP);
 router.post("/passwordchange", customerController.changePassword);
 router.post("/signin", customerController.Signin);
-router.post("/update", customerController.Update);
+router.post("/update",
+  customerMulter.upload.single("image"),
+  customerController.Update);
 router.post("/getCustomer", customerController.GetCustomer);
 router.post("/makeFavourite", customerController.MakeFavourite);
 router.post("/makeUnFavourite", customerController.MakeUnFavourite);
