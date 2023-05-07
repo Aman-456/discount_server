@@ -325,63 +325,55 @@ exports.Signin = async (req, res) => {
 
 exports.Update = async (req, res) => {
   try {
+    console.log(req.body);
+
     const customer = req.body
     const Foundcustomer = await Customer.findOne({ email: customer.email });
     console.log(Foundcustomer);
 
     if (!Foundcustomer) {
-      res.json({ type: "failure", result: "No User With Such Email Exists" });
-    } else {
-      if (Foundcustomer.hide === true) {
-        return res.json({
-          type: "failure",
-          result: "Account has been deleted",
-        });
-      }
-      if (Foundcustomer.verify === false) {
-        return res
-          .status(401)
-          .json({ type: "failureEmail", result: "Email is not verified" });
-      }
-      Foundcustomer = req.body;
-      await Foundcustomer.save()
-      if (isEqual) {
-
-        if (req.body.image) {
-          const filename = Foundcustomer.image;
-          if (fs.existsSync(filename)) {
-            fs.unlinkSync(filename);
-            console.log(`${filename} deleted successfully`);
-          } else {
-            console.log(`${filename} does not exist`);
-          }
-        }
-
-        res.status(200).json({
-          type: "success",
-          result: "Customer Logged In Successfully",
-          customer: {
-            id: Foundcustomer._id,
-            name: Foundcustomer.name,
-            phone: Foundcustomer.phone,
-            email: Foundcustomer.email,
-            address: Foundcustomer.address,
-            image: Foundcustomer.image,
-            cards: Foundcustomer.cards,
-            favouriteVendors: Foundcustomer.favouriteVendors,
-          },
-        });
+      return res.json({ type: "failure", result: "No User With Such Email Exists" });
+    }
+    if (Foundcustomer.verify === false) {
+      return res
+        .status(401)
+        .json({ type: "failure", result: "Email is not verified" });
+    }
+    Foundcustomer = req.body;
+    await Foundcustomer.save()
+    if (req.body.image) {
+      const filename = Foundcustomer.image;
+      if (fs.existsSync(filename)) {
+        fs.unlinkSync(filename);
+        console.log(`${filename} deleted successfully`);
       } else {
-        res.json({ type: "failure", result: "Wrong Password" });
+        console.log(`${filename} does not exist`);
       }
     }
-  } catch (error) {
+    res.status(200).json({
+      type: "success",
+      result: "Customer updated Successfully",
+      customer: {
+        id: Foundcustomer._id,
+        name: Foundcustomer.name,
+        phone: Foundcustomer.phone,
+        email: Foundcustomer.email,
+        address: Foundcustomer.address,
+        image: Foundcustomer.image,
+        cards: Foundcustomer.cards,
+        favouriteVendors: Foundcustomer.favouriteVendors,
+      },
+    });
+
+  }
+  catch (error) {
     console.log(error);
     res
       .status(500)
       .json({ type: "failure", result: "Server not Responding. Try Again" });
   }
 };
+
 
 exports.GetCustomer = async (req, res) => {
   try {
@@ -507,39 +499,20 @@ exports.OnLogout = async (req, res) => {
   }
 };
 
-
-exports.UpdatePassword = async (req, res) => {
+exports.getwishlist = async (req, res) => {
   try {
-    console.log(req.query);
+    const customerId = req.body.id;
+    const data = await Customer.findById(customerId).populate("favouriteItems")
 
-    const customerId = req.query.customerId;
-    const customerFound = await Customer.findById(customerId);
-    const passResponse = await Customer.isPasswordEqual(
-      req.body.currentPassword,
-      customerFound.password
-    );
-    console.log("object" + passResponse);
-    if (passResponse) {
-      customerFound.password = await Customer.CreateHash(req.body.newPassword);
-    } else {
-      res
-        .status(401)
-        .json({ type: "failure", result: "Current Password is incorrect" });
-      return;
-    }
-    customerFound
-      .save()
-      .then(() => {
-        res
-          .status(200)
-          .json({ type: "success", result: "Password has been Changed" });
-      })
-      .catch((error) => {
-        res
-          .status(500)
-          .json({ type: "failure", result: "Server Not Responding" });
-        return;
-      });
+    if (data)
+      return res
+        .status(200)
+        .json({ type: "success", result: data });
+
+    else
+      return res
+        .status(500)
+        .json({ type: "failure", result: "Server Not Responding" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ type: "failure", result: "Server Not Responding" });

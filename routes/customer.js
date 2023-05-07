@@ -21,6 +21,6 @@ router.post("/makeUnFavourite", customerController.MakeUnFavourite);
 router.get("/getCustomers", customerController.GetCustomers);
 router.get("/deletecustomeraccount", customerController.DeleteCustomerAccount);
 router.put("/updateProfile", customerController.UpdateProfile);
-router.put("/updatePassword", customerController.UpdatePassword);
+router.post("/getwishlist", customerController.getwishlist);
 
 exports.routes = router;
