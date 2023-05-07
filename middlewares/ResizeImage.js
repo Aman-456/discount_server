@@ -2,6 +2,7 @@ const sharp = require("sharp");
 const fs = require("fs");
 exports.ResizeImage = async (req, res, next) => {
   try {
+    if (!req.body.image) next()
     console.log(req.file);
     console.log(req.body.image.split("/")[2]);
     console.log(req.file.filename);

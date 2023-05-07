@@ -27,7 +27,7 @@ const CustomerSchema = new Schema(
     hide: { type: Boolean, default: false },
     expireTime: { type: Date },
     stripeId: { type: String },
-    favouriteVendors: [{ type: Schema.Types.ObjectId, ref: "vendor" }],
+    favouriteItems: [{ type: Schema.Types.ObjectId, ref: "item" }],
     cards: [CardSchema],
   },
   { timestamps: true }

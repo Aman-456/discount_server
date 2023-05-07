@@ -40,10 +40,7 @@ exports.Signup = async (req, res) => {
 exports.Signin = async (req, res) => {
   try {
     console.log(req.body);
-    const credientials = await Admin.findOne({
-      email: req.body.email,
-    });
-    const admin = await Admin.findOne({ email: credientials.email });
+    const admin = await Admin.findOne({ email: req.body.email });
     if (!admin) {
       res
         .status(200)
@@ -60,7 +57,7 @@ exports.Signin = async (req, res) => {
           result: "Admin Login Successfully",
           data: {
             token: token,
-            id: admin._id,
+            _id: admin._id,
           }
         });
       } else {
@@ -127,19 +124,67 @@ exports.Contact = async (req, res) => {
 };
 exports.Dashboard = async (req, res) => {
   try {
-    var TotalOrders = await Order.find({}).count();
-    var TotalVendors = await Vendor.find({}).count();
-    console.log("Total Orders :" + TotalOrders);
-    console.log("Total Vendors :" + TotalVendors);
-    res
-      .status(200)
-      .json({ type: "success", result: "Admin Registered Successfully" });
-  } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
+    const TotalOrders = await Order.find({});
+    const TotalVendors = await Vendor.find({});
+    const TotalCustomers = await customer.find({});
+
+    const labels = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    const userCounts = labels.map((month) =>
+      TotalOrders.filter((order) => order.createdAt.getMonth() === labels.indexOf(month)).length
+    );
+
+    const vendorCounts = labels.map((month) =>
+      TotalVendors.filter((vendor) => vendor.createdAt.getMonth() === labels.indexOf(month)).length
+    );
+
+    const customerCounts = labels.map((month) =>
+      TotalCustomers.filter((customer) => customer.createdAt.getMonth() === labels.indexOf(month)).length
+    );
+
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Orders',
+          data: userCounts,
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        },
+        {
+          label: 'Vendors',
+          data: vendorCounts,
+          borderColor: 'rgb(53, 162, 235)',
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        },
+        {
+          label: 'Customers',
+          data: customerCounts,
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        },
+      ],
+    };
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server Error' });
   }
+
 };
 
 
@@ -286,6 +331,7 @@ exports.UpdateVendor = async (req, res) => {
         const vendors = await Vendor.find({
           status: "Pending"
         })
+          .sort({ $natural: -1 })
         res.status(200).json({ type: "success", result: vendors });
       }
       else {
@@ -340,6 +386,7 @@ exports.DeleteUser = async (req, res) => {
     const users = await customer.findOneAndDelete({ _id: req.body.id })
     if (users) {
       const newusers = await customer.find({})
+        .sort({ $natural: -1 })
       res.status(200).json({ type: "success", result: newusers });
     }
     else {
@@ -375,6 +422,7 @@ exports.NoticeComplete = async (req, res) => {
     )
     if (complete) {
       const notices = await Contact.find({ completed: false })
+        .sort({ $natural: -1 })
       res.status(200).json({ type: "success", result: notices });
 
     }

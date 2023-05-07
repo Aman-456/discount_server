@@ -22,30 +22,13 @@ const ReviewSchema = new Schema(
 
 const OrdersSchema = new Schema(
   {
-    id: Schema.ObjectId,
-    preOrder: { type: String, default: false },
-    date: { type: Object, default: null },
-    time: { type: Object, default: null },
     customer: { type: Schema.Types.ObjectId, ref: "customer" },
+    vendor: { type: Schema.Types.ObjectId, ref: "vendor" },
     paid: { type: Boolean, required: true },
     items: [ProductsSchema],
     total: { type: Number, required: true },
-    vendor: { type: Schema.Types.ObjectId, ref: "vendor" },
-    fromEvent: { type: Boolean, required: true },
-    riderAccept: { type: Boolean },
-    event: { type: Schema.Types.ObjectId, ref: "event" },
-    rider: { type: Schema.Types.ObjectId, ref: "rider" },
-    orderStatus: { type: String, required: true },
     review: ReviewSchema,
-    coupon: { type: String },
-    allergen: { type: String },
-    notifytime: { type: String },
     transaction: { type: Object },
-    chargeId: { type: String },
-    type: { type: String, required: true },
-    riderCount: { type: Number },
-    riderCurrent: { type: Number },
-    riders: { type: Object },
   },
   { timestamps: true }
 );

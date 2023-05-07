@@ -1,6 +1,6 @@
 const Customer = require("../models/customer");
 const Vendor = require("../models/vendor");
-const Haversine = require("./functions/HaversineFormula");
+// const Haversine = require("./functions/HaversineFormula");
 const nodemailer = require("nodemailer");
 var handlebars = require("handlebars");
 var fs = require("fs");
@@ -80,7 +80,8 @@ async function sendEmail(email, name, user, res) {
         pass: `${process.env.APP_PASS || process.env.EMAIL_PASSWORD}`,
       },
     });
-    const URL = `http://${process.env.HOST}:${5000}/customer/verify?token=${user._id} `;
+    // const URL = `https://discountbazar.netlify.app/customer/verify?token=${user._id} `;
+    const URL = `http://localhost:${process.env.PORT || 5000}/customer/verify?token=${user._id} `;
     readHTMLFile(
       "./templates/emailverification.html",
       async function (err, html) {
@@ -136,7 +137,7 @@ exports.Verify = async (req, res) => {
   var user = await Customer.findOne({ _id: Id });
   if (user) {
     if (user.verify == true) {
-      return res.redirect("http://localhost:3000")
+      return res.redirect(`${process.env.HOST == "localhost" ? "http://localhost:3000" : "https://discountbazar.netlify.app"}`)
     }
     user.verify = true;
     await user.save()
@@ -300,7 +301,7 @@ exports.Signin = async (req, res) => {
           type: "success",
           result: "Customer Logged In Successfully",
           customer: {
-            id: Foundcustomer._id,
+            _id: Foundcustomer._id,
             name: Foundcustomer.name,
             phone: Foundcustomer.phone,
             email: Foundcustomer.email,
@@ -345,10 +346,17 @@ exports.Update = async (req, res) => {
       Foundcustomer = req.body;
       await Foundcustomer.save()
       if (isEqual) {
+
         if (req.body.image) {
-          const filename = Foundcustomer.image
-          fs.unlinkSync("assets/vendor/" + filename);
+          const filename = Foundcustomer.image;
+          if (fs.existsSync(filename)) {
+            fs.unlinkSync(filename);
+            console.log(`${filename} deleted successfully`);
+          } else {
+            console.log(`${filename} does not exist`);
+          }
         }
+
         res.status(200).json({
           type: "success",
           result: "Customer Logged In Successfully",

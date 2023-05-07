@@ -22,9 +22,8 @@ router.post(
   vendorControllers.UpdateVendor
 );
 router.post("/updateVendorMap", vendorControllers.UpdateVendorMap);
-router.get(
+router.post(
   "/getVendor",
-  // Authenticator.athenticate,
   vendorControllers.GetVendor
 );
 
@@ -34,11 +33,13 @@ router.post(
   vendorControllers.UpdateOnlineStatus
 );
 router.get("/getvendors", vendorControllers.GetVendors);
+router.get("/getsixvendors", vendorControllers.Getsixvendors);
 router.get("/onLogout", vendorControllers.OnLogout);
 
 router.post("/otpsend", vendorControllers.OTP);
 router.post("/verifyotp", vendorControllers.verifyOTP);
 router.post("/passwordchange", vendorControllers.changePassword);
+router.get("/dashboard", vendorControllers.Dashboard);
 router.post(
   "/getOrderswithtotalearning",
   vendorControllers.GetOrderswithTotalEarning

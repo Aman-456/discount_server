@@ -1,6 +1,5 @@
 const express = require("express");
 
-const itemHandler = require("../handlers/item");
 
 const itemController = require("../controllers/items");
 
@@ -13,32 +12,22 @@ const router = express.Router();
 router.post(
   "/addItem",
   MultipartData.upload.single("image"),
-  Authenticator.athenticate,
   Resizer.ResizeImage,
-  itemHandler.itemHandler,
   itemController.AddItem
 );
-router.get("/getItem", Authenticator.athenticate, itemController.GetItem);
-router.get("/getItemsByVendor", itemController.GetItemsByVendor);
-router.get(
-  "/getPendingItems",
-  Authenticator.athenticate,
-  itemController.GetPendingItems
-);
-//wow
-router.put("/updateStatus", itemController.UpdateStatus);
-router.delete("/deleteItem", itemController.DeleteItem);
-router.put(
+router.post("/getItem", itemController.GetItem);
+router.get("/getlatestsix", itemController.GetLatest6);
+router.post("/getItemsByVendor", itemController.GetItemsByVendor);
+router.get("/getfeatured", itemController.GetFeaturedProducts);
+router.get("/getall", itemController.GetAll);
+router.post("/addtofav", itemController.AddItemtoFav);
+router.post("/removefromfav", itemController.RemoveItemfromFav);
+router.post("/deleteItem", itemController.DeleteItem);
+router.post(
   "/updateItem",
   MultipartData.upload.single("image"),
-  Authenticator.athenticate,
   Resizer.ResizeImage,
   itemController.UpdateItem
-);
-router.put(
-  "/updateItemWithoutImage",
-  Authenticator.athenticate,
-  itemController.UpdateItemWithoutImage
 );
 
 exports.routes = router;

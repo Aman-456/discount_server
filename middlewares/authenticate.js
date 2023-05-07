@@ -14,6 +14,7 @@ exports.athenticate = async (req, res, next) => {
           .status(401)
           .json({ type: "failure", result: "You Are Not Logged in" });
       } else {
+
         next();
       }
     });

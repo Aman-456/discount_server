@@ -1,5 +1,6 @@
 const Vendor = require("../models/vendor");
 const Admin = require("../models/admin");
+const customer = require("../models/customer");
 const OrderModal = require("../models/orders");
 const mongoose = require("mongoose");
 const JWT = require("jsonwebtoken");
@@ -156,7 +157,12 @@ exports.UpdateProfile = async (req, res) => {
     const oldVendor = await Vendor.findById(vendorId);
     if (oldVendor.image === "assets/vendors/sample.jpg") {
     } else {
-      fs.unlinkSync(oldVendor.image);
+      if (fs.existsSync(oldVendor.image)) {
+        fs.unlinkSync(oldVendor.image);
+        console.log(`${oldVendor.image} deleted successfully`);
+      } else {
+        console.log(`${oldVendor.image} does not exist`);
+      }
     }
     const response = await Vendor.findByIdAndUpdate(vendorId, {
       $set: {
@@ -227,7 +233,7 @@ async function sendEmail(email, name, vendors, res, action) {
       to: email,
       subject: `Profile ${action}`,
 
-      text: `Dear ${name} Your profile has been ${action} on inuaeats.com ,Please check your portal for the status`,
+      text: `Dear ${name} Your profile has been ${action} on discountbazar,Please check your portal for the status`,
     };
 
     await transporter.verify();
@@ -271,102 +277,22 @@ exports.UpdateStatusBlock = async (req, res) => {
   }
 };
 
-exports.OauthGoogle = async (req, res) => {
-  try {
-    const { email, name, image, googleId } = req.body;
-    const exist = await Vendor.findOne({ email: email });
-    const token = await JWT.sign({ username: name }, JWT_SECRET_KEY);
-    if (exist) {
-      res.status(200).json({
-        type: "success",
-        result: "Already Registered",
-        token: token,
-        vendor: exist,
-      });
-      return;
-    }
-    const vendor = new Vendor({
-      name: name,
-      email: email,
-      image: "assets/vendors/sample.jpg",
-      provider: { type: "google", providerId: googleId },
-      completeStatus: false,
-      status: "Pending",
-      latitude: "",
-      longitude: "",
-      address: "",
-    });
-    const response = await vendor.save();
-    if (!response) {
-      res
-        .status(500)
-        .json({ type: "failure", result: "Server not Responding. Try Again" });
-      return;
-    }
-    res.status(200).json({
-      type: "success",
-      result: "Vendor Registered",
-      token: token,
-      vendor: response,
-    });
-  } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
-  }
-};
-
-exports.OauthFacebook = async (req, res) => {
-  try {
-    const { email, name, userId } = req.body;
-    const exist = await Vendor.findOne({ email: email });
-    const token = await JWT.sign({ username: name }, JWT_SECRET_KEY);
-    if (exist) {
-      res.status(200).json({
-        type: "success",
-        result: "Already Registered",
-        token: token,
-        vendor: exist,
-      });
-      return;
-    }
-    const vendor = new Vendor({
-      name: name,
-      email: email,
-      image: "assets/vendors/sample.jpg",
-      provider: { type: "facebook", providerId: userId },
-      completeStatus: false,
-      status: "Pending",
-      latitude: "",
-      longitude: "",
-      address: "",
-    });
-    const response = await vendor.save();
-    if (!response) {
-      res
-        .status(500)
-        .json({ type: "failure", result: "Server not Responding. Try Again" });
-      return;
-    }
-    res.status(200).json({
-      type: "success",
-      result: "Vendor Registered",
-      token: token,
-      vendor: response,
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
-  }
-};
-
 exports.GetVendor = async (req, res) => {
   try {
-    var result = await Vendor.findById(req.query.vendorId);
+    var result = await Vendor.findById(req.body.id);
     res.status(200).json({ type: "success", result: result });
   } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server Not Responding. Try Again" });
+  }
+};
+exports.Getsixvendors = async (req, res) => {
+  try {
+    var result = await Vendor.find({}).limit(6);
+    res.status(200).json({ type: "success", result: result });
+  } catch (error) {
+    console.log({ error });
     res
       .status(500)
       .json({ type: "failure", result: "Server Not Responding. Try Again" });
@@ -378,22 +304,27 @@ exports.UpdateVendor = async (req, res) => {
   try {
     console.log(req.body);
 
-    const vendorID = req.body.vendorId;
+    const vendorID = req.body._id;
     let oldVendor = await Vendor.findById(vendorID);
-    req.body.dayStartTime = JSON.parse(req.body.dayStartTime);
-    req.body.dayEndTime = JSON.parse(req.body.dayEndTime);
+    // req.body.dayStartTime = JSON.parse(req.body.dayStartTime);
+    // req.body.dayEndTime = JSON.parse(req.body.dayEndTime);
     let vendor = req.body;
     if (req.body.image) {
-      const filename = oldVendor.image
-      fs.unlinkSync("assets/vendor/" + filename);
+      const filename = oldVendor.image;
+      if (fs.existsSync(filename)) {
+        fs.unlinkSync(filename);
+        console.log(`${filename} deleted successfully`);
+      } else {
+        console.log(`${filename} does not exist`);
+      }
     }
-    const response = await Vendor.findByIdAndUpdate(oldVendor._id, {
+    let response = await Vendor.findByIdAndUpdate(oldVendor._id, {
       $set: vendor,
     }, { new: true });
     if (response)
       res
         .status(200)
-        .json({ type: "success", result: "Profile Updated Successfully" });
+        .json({ type: "success", result: "Profile Updated Successfully", data: response });
 
   } catch (error) {
     console.log(error);
@@ -440,6 +371,15 @@ exports.UpdateOnlineStatus = async (req, res, next) => {
   }
 };
 
+exports.GetVendors = async (req, res) => {
+  try {
+    const response = await Vendor.find();
+    res.status(200).json({ type: "success", result: response });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
 exports.GetVendors = async (req, res) => {
   try {
     const response = await Vendor.find();
@@ -597,4 +537,51 @@ exports.GetOrderswithTotalEarning = async (req, res) => {
     res.status(500).json({ type: "failure", result: "Server Not Responding" });
     return;
   }
+};
+
+
+exports.Dashboard = async (req, res) => {
+  try {
+    const id = req.query.id
+    const TotalOrders = await OrderModal.find({ vendor: id });
+
+    const labels = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    const userCounts = labels.map((month) =>
+      TotalOrders.filter((order) => order.createdAt.getMonth() === labels.indexOf(month)).length
+    );
+
+
+
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Orders',
+          data: userCounts,
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        }
+      ],
+    };
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server Error' });
+  }
+
 };
