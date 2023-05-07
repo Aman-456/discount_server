@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 const ItemSchema = new Schema(
   {
-    vendor: { type: Schema.Types.ObjectId, ref: "vendor", required: true },
+    vendor: { type: Schema.Types.ObjectId, ref: "vendor" },
     name: { type: String, required: true, trim: true },
     price: { type: Number, required: true },
     rating: { type: Number, default: 0 },

@@ -80,7 +80,8 @@ async function sendEmail(email, name, user, res) {
         pass: `${process.env.APP_PASS || process.env.EMAIL_PASSWORD}`,
       },
     });
-    const URL = `https://discountbazar.netlify.app/customer/verify?token=${user._id} `;
+    // const URL = `https://discountbazar.netlify.app/customer/verify?token=${user._id} `;
+    const URL = `http://localhost:${process.env.PORT || 5000}/customer/verify?token=${user._id} `;
     readHTMLFile(
       "./templates/emailverification.html",
       async function (err, html) {
@@ -300,7 +301,7 @@ exports.Signin = async (req, res) => {
           type: "success",
           result: "Customer Logged In Successfully",
           customer: {
-            id: Foundcustomer._id,
+            _id: Foundcustomer._id,
             name: Foundcustomer.name,
             phone: Foundcustomer.phone,
             email: Foundcustomer.email,

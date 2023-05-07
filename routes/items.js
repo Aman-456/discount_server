@@ -20,7 +20,8 @@ router.get("/getlatestsix", itemController.GetLatest6);
 router.post("/getItemsByVendor", itemController.GetItemsByVendor);
 router.get("/getfeatured", itemController.GetFeaturedProducts);
 router.get("/getall", itemController.GetAll);
-
+router.post("/addtofav", itemController.AddItemtoFav);
+router.post("/removefromfav", itemController.RemoveItemfromFav);
 router.post("/deleteItem", itemController.DeleteItem);
 router.post(
   "/updateItem",

@@ -1,8 +1,7 @@
-const { validationResult } = require("express-validator");
 const Item = require("../models/item");
+const customer = require("../models/customer");
 const Order = require("../models/orders");
 const fs = require("fs");
-const mongoose = require("../db/connect");
 require("dotenv").config();
 
 exports.AddItem = async (req, res) => {
@@ -195,3 +194,61 @@ exports.GetAll = async (req, res) => {
 
 
 
+
+exports.AddItemtoFav = async (req, res) => {
+  try {
+    const item = await Item.findById(req.body.itemid);
+    if (!item) return res.json({ type: "failure", result: "item not found" })
+    const user = await customer.findByIdAndUpdate(req.body.customer,
+      {
+
+        $addToSet: { favouriteItems: req.body.itemid },
+      },
+      { new: true, strict: false }
+    );
+    if (user)
+      res.status(200).json({
+        type: "success",
+        result: user,
+      });
+    else
+      res.status(200).json({
+        type: "failure",
+        result: "couldn't update the user",
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
+
+
+
+
+exports.RemoveItemfromFav = async (req, res) => {
+  try {
+    const item = await Item.findById(req.body.itemid);
+    if (!item) return res.json({ type: "failure", result: "item not found" })
+    const user = await customer.findByIdAndUpdate(req.body.customer,
+      {
+        $pull: { favouriteItems: req.body.itemid },
+      },
+      { new: true, strict: false }
+    );
+    if (user)
+      res.status(200).json({
+        type: "success",
+        result: user,
+      });
+    else
+      res.status(200).json({
+        type: "failure",
+        result: "couldn't update the user",
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ type: "failure", result: "Server not Responding. Try Again" });
+  }
+};
