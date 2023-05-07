@@ -12,6 +12,9 @@ const ItemSchema = new Schema(
     category: { type: String, required: true, trim: true },
     image: { type: String, required: true },
     stock: { type: Number, default: 1 },
+    dimensions: { type: String },
+    weight: { type: Number },
+    color: { type: String },
     reviews: [{
       user: {
         type: Schema.Types.ObjectId, ref: "customer", required: true
@@ -21,5 +24,9 @@ const ItemSchema = new Schema(
   },
   { timestamps: true }
 );
-
+ItemSchema.index({
+  name: "text",
+  description: "text",
+  category: "text"
+});
 module.exports = mongoose.model("item", ItemSchema);

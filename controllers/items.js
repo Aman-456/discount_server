@@ -165,6 +165,7 @@ exports.UpdateItem = async (req, res) => {
     const items = await Item.find({
       vendor: req.body.vendor
     })
+      .sort({ $natural: -1 })
     res
       .status(200)
       .json({ type: "success", result: "Item Updated Successfully", data: items });
