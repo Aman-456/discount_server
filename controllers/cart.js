@@ -1,4 +1,4 @@
-const Cart = require('../models/cart');
+const Cart = require('../models/cart'); 
 
 // Add item to cart
 exports.addItem = async (req, res) => {
@@ -48,9 +48,9 @@ exports.deleteItem = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'An error occurred' });
-    }
+    } 
 };
-
+ 
 // Get cart details
 exports.getCart = async (req, res) => {
     try {
