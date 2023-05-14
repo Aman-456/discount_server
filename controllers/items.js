@@ -43,7 +43,6 @@ exports.GetItem = async (req, res) => {
     const exist = req.body.exist;
     const name = req.body.name;
     const type = req.body.type;
-    console.log({ type });
     if (exist) {
       let item = await Item.find({
         $and: [
