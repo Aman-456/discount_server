@@ -1,6 +1,7 @@
 const Item = require("../models/item");
 const customer = require("../models/customer");
 const Order = require("../models/orders");
+const Cart = require("../models/cart");
 const fs = require("fs");
 require("dotenv").config();
 
@@ -155,6 +156,56 @@ exports.GetFeaturedProducts = async (req, res) => {
       .status(500)
       .json({ type: "failure", result: "Server not Responding. Try Again" });
   }
+};
+exports.GetTrending = async (req, res) => {
+  // try {
+  //   const result = await Cart.aggregate([
+  //     { $unwind: "$items" },
+  //     { $group: { _id: "$items.item", count: { $sum: "$items.quantity" } } },
+  //     { $sort: { count: -1 } },
+  //     { $limit: 10 },
+  //   ]);
+
+
+  //   const trendingProductIds = result.map((item) => item._id);
+
+  //   const trendingProducts = await Item.find({ _id: { $in: trendingProductIds } });
+
+  //   return res.json({ type: "success", item: trendingProducts });
+  // } catch (error) {
+  //   console.error(error);
+  //   return res.status(500).json({ type: "failure", result: "Internal server error" });
+  // }
+
+  try {
+    const result = await Cart.aggregate([
+      { $unwind: "$items" },
+      { $group: { _id: "$items.item", count: { $sum: "$items.quantity" } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 },
+    ]);
+
+    const trendingProductIds = result.map((item) => item._id);
+
+    const trendingProducts = await Item.find({ _id: { $in: trendingProductIds } })
+      .populate("vendor"); // Populate the 'vendor' reference field
+
+    if (trendingProducts.length < 10) {
+      const remainingProductCount = 10 - trendingProducts.length;
+      const remainingProducts = await Item.find({
+        _id: { $nin: trendingProductIds },
+      })
+        .limit(remainingProductCount)
+        .populate("vendor"); // Populate the 'vendor' reference field for remaining products
+      trendingProducts.push(...remainingProducts);
+    }
+
+    return res.json({ type: "success", item: trendingProducts });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ type: "failure", result: "Internal server error" });
+  }
+
 };
 
 exports.UpdateItem = async (req, res) => {
