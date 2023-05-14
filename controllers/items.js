@@ -53,14 +53,14 @@ exports.GetItem = async (req, res) => {
       return res.json({ type: "success", result: item });
     }
 
-    const item = await Item.findById(itemId)
+    const item = await Item.findById(itemId).populate("vendor", "name _id onlineStatus")
     const relative = await Item.find({
       $or: [
         { category: item.category },
         { name: { $regex: item.name, $options: 'i' } }
       ],
       _id: { $ne: item._id }
-    }).populate("vendor")
+    }).populate("vendor", "name _id onlineStatus")
 
     res.status(200).json({ type: "success", result: item, relative });
   } catch (error) {
