@@ -24,5 +24,6 @@ router.get("/getCustomers", customerController.GetCustomers);
 router.get("/deletecustomeraccount", customerController.DeleteCustomerAccount);
 router.put("/updateProfile", customerController.UpdateProfile);
 router.post("/getwishlist", customerController.getwishlist);
+router.get("/getallvendors", customerController.getallvendors);
 
 exports.routes = router;

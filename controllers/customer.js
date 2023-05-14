@@ -520,6 +520,23 @@ exports.getwishlist = async (req, res) => {
     res.status(500).json({ type: "failure", result: "Server Not Responding" });
   }
 };
+exports.getallvendors = async (req, res) => {
+  try {
+    const data = await Vendor.find({})
+    if (data)
+      return res
+        .status(200)
+        .json({ type: "success", result: data });
+
+    else
+      return res
+        .status(500)
+        .json({ type: "failure", result: "Server Not Responding" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
 exports.UpdateProfile = async (req, res) => {
   try {
     console.log(req.query);
