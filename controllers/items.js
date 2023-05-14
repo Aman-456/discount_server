@@ -42,14 +42,17 @@ exports.GetItem = async (req, res) => {
     const itemId = req.body.id;
     const exist = req.body.exist;
     const name = req.body.name;
+    const type = req.body.type;
+    console.log({ type });
     if (exist) {
-      const item = await Item.find({
+      let item = await Item.find({
         $and: [
           { name: { $regex: name, $options: 'i' } },
-          { _id: { $ne: exist } }
+          { _id: { $ne: exist } },
         ]
-      });
+      }).populate("vendor", "name onlineStatus")
 
+      item = item.filter(e => e?.vendor?.onlineStatus === type)
       return res.json({ type: "success", result: item });
     }
 
