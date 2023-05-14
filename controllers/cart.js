@@ -27,15 +27,11 @@ exports.addItem = async (req, res) => {
 // Update item in cart
 exports.updateItem = async (req, res) => {
     try {
-        const update = req.body.udpate;
-        var condition = { $push: { items: { item: itemId, quantity: quantity } } }
-        if (!update) {
-            condition = { $set: { 'items.$.quantity': quantity } }
-        }
-        const { customerId, itemId, quantity } = req.body;
+        const { customer, itemId, quantity } = req.body;
+        console.log({ customer, itemId, quantity });
         const cart = await Cart.findOneAndUpdate(
-            { customer: customerId, 'items.item': itemId },
-            condition,
+            { customer, 'items.item': itemId },
+            { $set: { 'items.$.quantity': quantity } },
             { new: true }
         );
         if (!cart) {
@@ -71,11 +67,15 @@ exports.deleteItem = async (req, res) => {
 exports.getCart = async (req, res) => {
     try {
         const { customerId } = req.query;
-        const cart = await Cart.findOne({ customer: customerId }).populate('items.item', 'name').sort({ $natural: -1 })
+        const cart = await Cart.findOne({ customer: customerId }).populate('items.item', 'name price image').sort({ $natural: -1 })
+        var total = 0;
+        for (const item of cart.items) {
+            total += item.quantity * item.item.price;
+        }
         if (!cart) {
             return res.status(404).json({ type: 'Cart not found' });
         }
-        res.status(200).json({ cart });
+        res.status(200).json({ result: { items: cart.items, total }, type: "success" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ type: 'An error occurred' });

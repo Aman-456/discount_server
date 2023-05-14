@@ -4,7 +4,6 @@ const Schema = mongoose.Schema;
 
 const ProductsSchema = new Schema(
   {
-    id: Schema.ObjectId,
     item: { type: Schema.Types.ObjectId, ref: "item" },
     quantity: { type: Number, required: true },
   },
@@ -13,7 +12,7 @@ const CartSchema = new Schema(
   {
     customer: { type: Schema.Types.ObjectId, ref: "customer" },
     items: [ProductsSchema],
-    total: { type: Number, required: true },
+    // total: { type: Number, required: true },
   },
   { timestamps: true }
 );
