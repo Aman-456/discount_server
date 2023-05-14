@@ -11,6 +11,7 @@ const order = require("./routes/order");
 const cart = require("./routes/cart");
 const search = require("./routes/search");
 const bannerproducts = require("./routes/bannerroutes");
+const checkout = require("./routes/checkout");
 
 
 require("dotenv").config();
@@ -46,6 +47,7 @@ app.use("/item", item.routes);
 app.use("/admin", admin.routes);
 app.use("/order", order.routes);
 app.use("/cart", cart.routes);
+app.use("/checkout", checkout.routes);
 app.use("/search", search.routes);
 app.use("/banner", bannerproducts.routes);
 

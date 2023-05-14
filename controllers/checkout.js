@@ -32,30 +32,6 @@ exports.addItem = async (req, res) => {
   }
 };
 
-// Update item in cart
-exports.updateItem = async (req, res) => {
-  try {
-    const { customer, itemId, quantity } = req.body;
-    console.log({ customer, itemId, quantity });
-    const checkout = await CheckOut.findOneAndUpdate(
-      { customer, "items.item": itemId },
-      { $set: { "items.$.quantity": quantity } },
-      { new: true }
-    );
-    if (!checkout) {
-      return res
-        .status(404)
-        .json({ type: "failure", result: "Cart or item not found" });
-    }
-    res
-      .status(200)
-      .json({ type: "success", result: "Item updated successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ type: "failure", result: "An error occurred" });
-  }
-};
-
 // Delete item from cart
 exports.deleteItem = async (req, res) => {
   try {
