@@ -3,32 +3,48 @@ const Cart = require('../models/cart');
 // Add item to cart
 exports.addItem = async (req, res) => {
     try {
-        const { customer, item, quantity, total } = req.body;
-        const cart = new Cart({ customer, items: [{ item, quantity }], total });
+        const { customer, itemId, quantity, total } = req.body;
+        const find = await Cart.findOne({ customer })
+        if (find) {
+            await Cart.findOneAndUpdate(
+                { customer: customer },
+                { $push: { items: { item: itemId, quantity: quantity } } },
+                { new: true }
+            );
+
+            return res.status(200).json({ type: "success", result: 'Item added to cart successfully' });
+        }
+        const cart = new Cart({ customer, items: [{ item: itemId, quantity, id: itemId }], total });
         await cart.save();
-        res.status(200).json({ message: 'Item added to cart successfully' });
+
+        res.status(200).json({ type: "success", result: 'Item added to cart successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'An error occurred' });
+        res.status(500).json({ type: "failure", result: 'An error occurred' });
     }
 };
 
 // Update item in cart
 exports.updateItem = async (req, res) => {
     try {
+        const update = req.body.udpate;
+        var condition = { $push: { items: { item: itemId, quantity: quantity } } }
+        if (!update) {
+            condition = { $set: { 'items.$.quantity': quantity } }
+        }
         const { customerId, itemId, quantity } = req.body;
         const cart = await Cart.findOneAndUpdate(
             { customer: customerId, 'items.item': itemId },
-            { $set: { 'items.$.quantity': quantity } },
+            condition,
             { new: true }
         );
         if (!cart) {
-            return res.status(404).json({ message: 'Cart or item not found' });
+            return res.status(404).json({ type: "failure", result: 'Cart or item not found' });
         }
-        res.status(200).json({ message: 'Item updated successfully' });
+        res.status(200).json({ type: "success", result: 'Item updated successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'An error occurred' });
+        res.status(500).json({ type: "failure", result: 'An error occurred' });
     }
 };
 
@@ -42,12 +58,12 @@ exports.deleteItem = async (req, res) => {
             { new: true }
         )
         if (!cart) {
-            return res.status(404).json({ message: 'Cart or item not found' });
+            return res.status(404).json({ type: "success", result: 'Cart or item not found' });
         }
-        res.status(200).json({ message: 'Item deleted successfully' });
+        res.status(200).json({ type: "success", result: 'Item deleted successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'An error occurred' });
+        res.status(500).json({ type: 'failure' });
     }
 };
 
@@ -57,11 +73,11 @@ exports.getCart = async (req, res) => {
         const { customerId } = req.query;
         const cart = await Cart.findOne({ customer: customerId }).populate('items.item', 'name').sort({ $natural: -1 })
         if (!cart) {
-            return res.status(404).json({ message: 'Cart not found' });
+            return res.status(404).json({ type: 'Cart not found' });
         }
         res.status(200).json({ cart });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'An error occurred' });
+        res.status(500).json({ type: 'An error occurred' });
     }
 };
