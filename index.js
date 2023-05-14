@@ -10,6 +10,7 @@ const customer = require("./routes/customer");
 const order = require("./routes/order");
 const cart = require("./routes/cart");
 const search = require("./routes/search");
+const bannerproducts = require("./routes/bannerroutes");
 
 
 require("dotenv").config();
@@ -46,6 +47,7 @@ app.use("/admin", admin.routes);
 app.use("/order", order.routes);
 app.use("/cart", cart.routes);
 app.use("/search", search.routes);
+app.use("/banner", bannerproducts.routes);
 
 
 server = app.listen(port, () => {
