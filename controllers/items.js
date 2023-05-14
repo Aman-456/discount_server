@@ -40,7 +40,20 @@ exports.AddItem = async (req, res) => {
 exports.GetItem = async (req, res) => {
   try {
     const itemId = req.body.id;
-    const item = await Item.findById(itemId);
+    const exist = req.body.exist;
+    const name = req.body.name;
+    if (exist) {
+      const item = await Item.find({
+        $and: [
+          { name: { $regex: name, $options: 'i' } },
+          { _id: { $ne: exist } }
+        ]
+      });
+
+      return res.json({ type: "success", result: item });
+    }
+
+    const item = await Item.findById(itemId)
     const relative = await Item.find({
       $or: [
         { category: item.category },
@@ -53,7 +66,7 @@ exports.GetItem = async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
+      .json({ type: "failure", result: error.message || "Server not Responding. Try Again" });
   }
 };
 exports.GetLatest6 = async (req, res) => {
@@ -122,7 +135,7 @@ exports.GetItemsByVendor = async (req, res) => {
     console.log(error);
     res
       .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
+      .json({ type: "failure", result: error.message || "Server not Responding. Try Again" });
   }
 };
 exports.GetFeaturedProducts = async (req, res) => {
