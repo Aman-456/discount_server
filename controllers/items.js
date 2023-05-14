@@ -73,9 +73,9 @@ exports.GetLatest6 = async (req, res) => {
   try {
     const item = await Item.find({})
       .sort({ $natural: -1 })
-      .populate("vendor");
+      .populate("vendor", "name _id onlineStatus")
 
-    res.status(200).json({ type: "success", result: item });
+    res.status(200).json({ type: "success", result: item })
   } catch (error) {
     res
       .status(500)
@@ -143,8 +143,8 @@ exports.GetFeaturedProducts = async (req, res) => {
 
     // Get a random selection of 16 items
     const items = await Item.aggregate([
-      { $sample: { size: 16 } }
-    ]);
+      { $sample: { size: 6 } }
+    ])
     return res.json({ type: "success", result: items });
 
   } catch (error) {
@@ -193,7 +193,7 @@ exports.GetAll = async (req, res) => {
   try {
     const item = await Item.find({})
       .sort({ $natural: -1 })
-      .populate("vendor")
+      .populate("vendor", "name _id onlineStatus")
     res
       .status(200)
       .json({ type: "success", result: "Item Updated Successfully", data: item });
