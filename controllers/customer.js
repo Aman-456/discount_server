@@ -328,7 +328,7 @@ exports.Update = async (req, res) => {
     console.log(req.body);
 
     const customer = req.body
-    const Foundcustomer = await Customer.findOne({ email: customer.email });
+    var Foundcustomer = await Customer.findOne({ email: customer.email });
     console.log(Foundcustomer);
 
     if (!Foundcustomer) {
@@ -339,8 +339,7 @@ exports.Update = async (req, res) => {
         .status(401)
         .json({ type: "failure", result: "Email is not verified" });
     }
-    Foundcustomer = req.body;
-    await Foundcustomer.save()
+
     if (req.body.image) {
       const filename = Foundcustomer.image;
       if (fs.existsSync(filename)) {
@@ -350,11 +349,14 @@ exports.Update = async (req, res) => {
         console.log(`${filename} does not exist`);
       }
     }
+    Foundcustomer.name = req.body.name;
+    Foundcustomer.image = req.body.image;
+    await Foundcustomer.save()
     res.status(200).json({
       type: "success",
       result: "Customer updated Successfully",
       customer: {
-        id: Foundcustomer._id,
+        _id: Foundcustomer._id,
         name: Foundcustomer.name,
         phone: Foundcustomer.phone,
         email: Foundcustomer.email,
@@ -504,6 +506,23 @@ exports.getwishlist = async (req, res) => {
     const customerId = req.body.id;
     const data = await Customer.findById(customerId).populate("favouriteItems")
 
+    if (data)
+      return res
+        .status(200)
+        .json({ type: "success", result: data });
+
+    else
+      return res
+        .status(500)
+        .json({ type: "failure", result: "Server Not Responding" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ type: "failure", result: "Server Not Responding" });
+  }
+};
+exports.getallvendors = async (req, res) => {
+  try {
+    const data = await Vendor.find({})
     if (data)
       return res
         .status(200)

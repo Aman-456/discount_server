@@ -40,29 +40,45 @@ exports.AddItem = async (req, res) => {
 exports.GetItem = async (req, res) => {
   try {
     const itemId = req.body.id;
-    const item = await Item.findById(itemId);
+    const exist = req.body.exist;
+    const name = req.body.name;
+    const type = req.body.type;
+    console.log({ type });
+    if (exist) {
+      let item = await Item.find({
+        $and: [
+          { name: { $regex: name, $options: 'i' } },
+          { _id: { $ne: exist } },
+        ]
+      }).populate("vendor", "name onlineStatus")
+
+      item = item.filter(e => e?.vendor?.onlineStatus === type)
+      return res.json({ type: "success", result: item });
+    }
+
+    const item = await Item.findById(itemId).populate("vendor", "name _id onlineStatus")
     const relative = await Item.find({
       $or: [
         { category: item.category },
         { name: { $regex: item.name, $options: 'i' } }
       ],
       _id: { $ne: item._id }
-    }).populate("vendor")
+    }).populate("vendor", "name _id onlineStatus")
 
     res.status(200).json({ type: "success", result: item, relative });
   } catch (error) {
     res
       .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
+      .json({ type: "failure", result: error.message || "Server not Responding. Try Again" });
   }
 };
 exports.GetLatest6 = async (req, res) => {
   try {
     const item = await Item.find({})
       .sort({ $natural: -1 })
-      .populate("vendor");
+      .populate("vendor", "name _id onlineStatus")
 
-    res.status(200).json({ type: "success", result: item });
+    res.status(200).json({ type: "success", result: item })
   } catch (error) {
     res
       .status(500)
@@ -122,7 +138,7 @@ exports.GetItemsByVendor = async (req, res) => {
     console.log(error);
     res
       .status(500)
-      .json({ type: "failure", result: "Server not Responding. Try Again" });
+      .json({ type: "failure", result: error.message || "Server not Responding. Try Again" });
   }
 };
 exports.GetFeaturedProducts = async (req, res) => {
@@ -130,8 +146,8 @@ exports.GetFeaturedProducts = async (req, res) => {
 
     // Get a random selection of 16 items
     const items = await Item.aggregate([
-      { $sample: { size: 16 } }
-    ]);
+      { $sample: { size: 6 } }
+    ])
     return res.json({ type: "success", result: items });
 
   } catch (error) {
@@ -180,7 +196,7 @@ exports.GetAll = async (req, res) => {
   try {
     const item = await Item.find({})
       .sort({ $natural: -1 })
-      .populate("vendor")
+      .populate("vendor", "name _id onlineStatus")
     res
       .status(200)
       .json({ type: "success", result: "Item Updated Successfully", data: item });
