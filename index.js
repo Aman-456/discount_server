@@ -47,7 +47,7 @@ app.use("/item", item.routes);
 app.use("/admin", admin.routes);
 app.use("/order", order.routes);
 app.use("/cart", cart.routes);
-// app.use("/checkout", checkout.routes);
+app.use("/checkout", checkout.routes);
 app.use("/search", search.routes);
 app.use("/banner", bannerproducts.routes);
 
