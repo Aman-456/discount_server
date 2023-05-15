@@ -56,7 +56,7 @@ exports.GetItem = async (req, res) => {
       return res.json({ type: "success", result: item });
     }
 
-    const item = await Item.findById(itemId).populate("vendor", "name _id onlineStatus")
+    const item = await Item.findById(itemId).populate("vendor", "name _id onlineStatus longitude latitude")
     const relative = await Item.find({
       $or: [
         { category: item.category },
