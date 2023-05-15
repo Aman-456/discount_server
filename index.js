@@ -11,7 +11,7 @@ const order = require("./routes/order");
 const cart = require("./routes/cart");
 const search = require("./routes/search");
 const bannerproducts = require("./routes/bannerroutes");
-// const checkout = require("./routes/checkout");
+const checkout = require("./routes/checkout");
 
 
 require("dotenv").config();

@@ -5,6 +5,8 @@ const Schema = mongoose.Schema;
 const ProductsSchema = new Schema({
   item: { type: Schema.Types.ObjectId, ref: "item" },
   quantity: { type: Number, required: true },
+  acceptedbyvendor: { type: String},
+  status: { type: String },
 });
 const checkoutSchema = new Schema(
   {
