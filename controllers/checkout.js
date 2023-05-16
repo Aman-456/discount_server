@@ -1,6 +1,11 @@
 const CheckOut = require("../models/checkout");
+const Cart = require("../models/cart");
 const User = require("../models/customer");
 const nodemailer = require("nodemailer");
+
+var handlebars = require("handlebars");
+var fs = require("fs");
+const path = require("path")
 
 // Add item to cart
 exports.addItem = async (req, res) => {
@@ -14,8 +19,14 @@ exports.addItem = async (req, res) => {
       card
     });
 
-    await newCheckout.save(user?.email, user?.name, res);
+    const data = await newCheckout.save();
+    if (data) {
+      await Cart.findOneAndDelete({ customer })
+      await sendEmail(user?.email, user, res)
+    }
+
   } catch (error) {
+
     console.error(error);
     res.status(500).json({ type: "failure", result: "An error occurred" });
   }
@@ -68,6 +79,16 @@ exports.getCheckout = async (req, res) => {
 };
 
 
+var readHTMLFile = function (path, callback) {
+  fs.readFile(path, { encoding: "utf-8" }, function (err, html) {
+    if (err) {
+      callback(err);
+      throw err;
+    } else {
+      callback(null, html);
+    }
+  });
+};
 
 
 async function sendEmail(email, user, res) {
@@ -82,10 +103,10 @@ async function sendEmail(email, user, res) {
       },
     });
     // const URL = `https://discountbazar.netlify.app/customer/verify?token=${user._id} `;
-    const host = process.env.host !== "localhost" ? "https://" + process.env.host : `http://localhost`;
-    const URL = `${host}:${process.env.PORT || 5000}/ `;
+    const host = process.env.HOST !== "localhost" ? `https://${process.env.HOST$}${process.env.PORT || 5000}` : `http://localhost`;
+    const URL = host;
     readHTMLFile(
-      "./templates/orderplaced.html.html",
+      "./templates/orderplaced.html",
       async function (err, html) {
         var template = handlebars.compile(html);
         var replacements = {
@@ -97,7 +118,7 @@ async function sendEmail(email, user, res) {
         const mailOptions = {
           from: `${process.env.EMAIL_ADDRESS} `,
           to: email,
-          subject: "Please confirm account",
+          subject: "Order Placed Successfully!",
           html: htmlToSend,
         };
 
@@ -105,7 +126,6 @@ async function sendEmail(email, user, res) {
 
         //Send Email
         transporter.sendMail(mailOptions, async (err, response) => {
-          console.log(response);
           if (err) {
             res
               .status(500)
@@ -113,19 +133,10 @@ async function sendEmail(email, user, res) {
             return;
           } else {
 
-            const cus = await user.save();
-            if (cus) {
-              res.status(200).json({
-                type: "success",
-                result: "Your order has been placed!",
-              });
-            }
-            else {
-              res.status(200).json({
-                type: "failue",
-                result: "Order Placement Error",
-              });
-            }
+            res.status(200).json({
+              type: "success",
+              result: "Your order has been placed!",
+            });
           }
         });
       }
