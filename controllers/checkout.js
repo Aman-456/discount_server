@@ -65,6 +65,12 @@ exports.getCheckout = async (req, res) => {
         $unwind: '$items'
       },
       {
+        $match: {
+          // 'items.vendor': Types.ObjectId(vendorId)
+          'items.vendor': new Types.ObjectId(vendorId)
+        }
+      },
+      {
         $lookup: {
           from: 'items',
           localField: 'items.item',
@@ -76,18 +82,15 @@ exports.getCheckout = async (req, res) => {
         $unwind: '$populatedItems'
       },
       {
-        $match: {
-          'populatedItems.vendor': mongoose.Types.ObjectId(vendorId)
-        }
-      },
-      {
         $project: {
           _id: 1,
           checkoutId: '$_id',
           item: {
             _id: '$populatedItems._id',
-            vendor: '$populatedItems.vendor',
+            vendor: '$items.vendor',
             name: '$populatedItems.name',
+            image: '$populatedItems.image',
+            price: '$populatedItems.price',
             checkoutId: '$_id'
           }
         }
@@ -95,6 +98,7 @@ exports.getCheckout = async (req, res) => {
     ]);
 
     console.log(items);
+
 
 
     res

@@ -120,12 +120,14 @@ exports.DeleteItem = async (req, res) => {
 exports.GetItemsByVendor = async (req, res) => {
   try {
     const vendorId = req.body.vendor;
+    console.log({ vendorId });
+
     const items = await Item.find(
       { vendor: vendorId },
     )
       .populate("vendor")
       .sort({ $natural: -1 })
-
+    console.log({ length: items?.length });
 
     if (items) {
       res.status(200).json({ type: "success", result: items });
