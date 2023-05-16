@@ -58,20 +58,12 @@ exports.deleteItem = async (req, res) => {
 // Get cart details
 exports.getCheckout = async (req, res) => {
   try {
-    const { customerId } = req.query;
-    const checkout = await CheckOut.findOne({ customer: customerId })
-      .populate("items.item", "name price image")
-      .sort({ $natural: -1 });
-    var total = 0;
-    for (const item of checkout.items) {
-      total += item.quantity * item.item.price;
-    }
-    if (!checkout) {
-      return res.status(404).json({ type: "Cart not found" });
-    }
+    const { vendorId } = req.body;
+    const items = await CheckOut.find({ 'items.item.vendor': vendorId })
+      .populate('items.item', 'vendor')
     res
       .status(200)
-      .json({ result: { items: checkout.items, total }, type: "success" });
+      .json({ result: items, type: "success" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ type: "An error occurred" });
