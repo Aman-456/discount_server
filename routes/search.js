@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Item = require("../models/item");
 
-// Search items
+// Search items 
 router.get("/", async (req, res) => {
     const searchQuery = req.query.q; // Get the search query from the request query parameters
 
