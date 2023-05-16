@@ -5,7 +5,8 @@ const nodemailer = require("nodemailer");
 
 var handlebars = require("handlebars");
 var fs = require("fs");
-const path = require("path")
+const path = require("path");
+const { Types } = require("mongoose");
 
 // Add item to cart
 exports.addItem = async (req, res) => {
@@ -65,7 +66,7 @@ exports.getCheckout = async (req, res) => {
       },
       {
         $lookup: {
-          from: 'items', // Assuming the name of the collection for the 'item' model is 'items'
+          from: 'items',
           localField: 'items.item',
           foreignField: '_id',
           as: 'populatedItems'
@@ -76,7 +77,7 @@ exports.getCheckout = async (req, res) => {
       },
       {
         $match: {
-          'populatedItems.vendor': vendorId
+          'populatedItems.vendor': mongoose.Types.ObjectId(vendorId)
         }
       },
       {
@@ -86,11 +87,15 @@ exports.getCheckout = async (req, res) => {
           item: {
             _id: '$populatedItems._id',
             vendor: '$populatedItems.vendor',
-            name: '$populatedItems.name'
+            name: '$populatedItems.name',
+            checkoutId: '$_id'
           }
         }
       }
     ]);
+
+    console.log(items);
+
 
     res
       .status(200)
