@@ -59,8 +59,39 @@ exports.deleteItem = async (req, res) => {
 exports.getCheckout = async (req, res) => {
   try {
     const { vendorId } = req.body;
-    const items = await CheckOut.find({ 'items.item.vendor': vendorId })
-      .populate('items.item', 'vendor')
+    const items = await CheckOut.aggregate([
+      {
+        $unwind: '$items'
+      },
+      {
+        $lookup: {
+          from: 'items', // Assuming the name of the collection for the 'item' model is 'items'
+          localField: 'items.item',
+          foreignField: '_id',
+          as: 'populatedItems'
+        }
+      },
+      {
+        $unwind: '$populatedItems'
+      },
+      {
+        $match: {
+          'populatedItems.vendor': vendorId
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          checkoutId: '$_id',
+          item: {
+            _id: '$populatedItems._id',
+            vendor: '$populatedItems.vendor',
+            name: '$populatedItems.name'
+          }
+        }
+      }
+    ]);
+
     res
       .status(200)
       .json({ result: items, type: "success" });
