@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 const ProductsSchema = new Schema({
   item: { type: Schema.Types.ObjectId, ref: "item" },
-  vendor: { type: Schema.Types.ObjectId, ref: "item" },
+  vendor: { type: Schema.Types.ObjectId, ref: "vendor" },
   quantity: { type: Number, required: true },
   status: { type: String, default: "Pending" },
   acceptedbyvendor: { type: Boolean, default: false },

@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
- 
+
 const ProductsSchema = new Schema(
   {
     item: { type: Schema.Types.ObjectId, ref: "item" },
+    vendor: { type: Schema.Types.ObjectId, ref: "vendor" },
     quantity: { type: Number, required: true },
   },
 );
