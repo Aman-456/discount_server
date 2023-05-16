@@ -1,31 +1,20 @@
 const CheckOut = require("../models/checkout");
+const User = require("../models/customer");
+const nodemailer = require("nodemailer");
 
 // Add item to cart
 exports.addItem = async (req, res) => {
   try {
-    const { customer, itemId, quantity, total } = req.body;
-    const find = await CheckOut.findOne({ customer });
-    if (find) {
-      await CheckOut.findOneAndUpdate(
-        { customer: customer },
-        { $push: { items: { item: itemId, quantity: quantity } } },
-        { new: true }
-      );
-
-      return res
-        .status(200)
-        .json({ type: "success", result: "Item added to cart for checkout successfully" });
-    }
-    const checkout = new CheckOut({
+    const { customer, items, total, card } = req.body;
+    const user = await User.findOne({ _id: customer })
+    const newCheckout = new CheckOut({
       customer,
-      items: [{ item: itemId, quantity, id: itemId }],
+      items,
       total,
+      card
     });
-    await checkout.save();
 
-    res
-      .status(200)
-      .json({ type: "success", result: "Item added to cart for checkout successfully" });
+    await newCheckout.save(user?.email, user?.name, res);
   } catch (error) {
     console.error(error);
     res.status(500).json({ type: "failure", result: "An error occurred" });
@@ -77,3 +66,71 @@ exports.getCheckout = async (req, res) => {
     res.status(500).json({ type: "An error occurred" });
   }
 };
+
+
+
+
+async function sendEmail(email, user, res) {
+  try {
+    const transporter = await nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: `${process.env.EMAIL_ADDRESS}`,
+        pass: `${process.env.APP_PASS || process.env.EMAIL_PASSWORD}`,
+      },
+    });
+    // const URL = `https://discountbazar.netlify.app/customer/verify?token=${user._id} `;
+    const host = process.env.host !== "localhost" ? "https://" + process.env.host : `http://localhost`;
+    const URL = `${host}:${process.env.PORT || 5000}/ `;
+    readHTMLFile(
+      "./templates/orderplaced.html.html",
+      async function (err, html) {
+        var template = handlebars.compile(html);
+        var replacements = {
+          name: user.name,
+          link: URL,
+        };
+        var htmlToSend = template(replacements);
+
+        const mailOptions = {
+          from: `${process.env.EMAIL_ADDRESS} `,
+          to: email,
+          subject: "Please confirm account",
+          html: htmlToSend,
+        };
+
+        await transporter.verify();
+
+        //Send Email
+        transporter.sendMail(mailOptions, async (err, response) => {
+          console.log(response);
+          if (err) {
+            res
+              .status(500)
+              .json({ type: "failure", result: "Server Not Responding" });
+            return;
+          } else {
+
+            const cus = await user.save();
+            if (cus) {
+              res.status(200).json({
+                type: "success",
+                result: "Your order has been placed!",
+              });
+            }
+            else {
+              res.status(200).json({
+                type: "failue",
+                result: "Order Placement Error",
+              });
+            }
+          }
+        });
+      }
+    );
+  } catch (error) {
+    console.log(error + "error");
+  }
+}
