@@ -1,14 +1,14 @@
-const Cart = require('../models/cart'); 
+const Cart = require('../models/cart');
 
 // Add item to cart
 exports.addItem = async (req, res) => {
     try {
-        const { customer, itemId, quantity, total } = req.body;
+        const { customer, itemId, quantity, total, vendor } = req.body;
         const find = await Cart.findOne({ customer })
         if (find) {
             await Cart.findOneAndUpdate(
                 { customer: customer },
-                { $push: { items: { item: itemId, quantity: quantity } } },
+                { $push: { items: { item: itemId, quantity: quantity, vendor } } },
                 { new: true }
             );
 
@@ -62,7 +62,7 @@ exports.deleteItem = async (req, res) => {
         res.status(500).json({ type: 'failure' });
     }
 };
- 
+
 // Get cart details
 exports.getCart = async (req, res) => {
     try {
