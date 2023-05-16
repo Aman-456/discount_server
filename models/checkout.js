@@ -12,7 +12,7 @@ const checkoutSchema = new Schema(
   {
     customer: { type: Schema.Types.ObjectId, ref: "customer" },
     items: [ProductsSchema],
-    // total: { type: Number, required: true },
+    // total: { type: Number, required: true },    
   },
   { timestamps: true }
 );
