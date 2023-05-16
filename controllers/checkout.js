@@ -56,7 +56,7 @@ exports.deleteItem = async (req, res) => {
 };
 
 // Get cart details
-exports.getCheckout = async (req, res) => {
+exports.getCheckout = async (req, res) => { 
   try {
     const { vendorId } = req.body;
     const items = await CheckOut.aggregate([
