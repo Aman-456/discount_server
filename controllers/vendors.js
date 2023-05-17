@@ -2,6 +2,7 @@ const Vendor = require("../models/vendor");
 const Admin = require("../models/admin");
 const customer = require("../models/customer");
 const OrderModal = require("../models/orders");
+const CheckoutModal = require("../models/checkout");
 const mongoose = require("mongoose");
 const JWT = require("jsonwebtoken");
 const fs = require("fs");
@@ -543,7 +544,7 @@ exports.GetOrderswithTotalEarning = async (req, res) => {
 exports.Dashboard = async (req, res) => {
   try {
     const id = req.query.id
-    const TotalOrders = await OrderModal.find({ vendor: id });
+    const TotalCheckouts = await CheckoutModal.find({ 'items.vendor': id });
 
     const labels = [
       'January',
@@ -561,7 +562,7 @@ exports.Dashboard = async (req, res) => {
     ];
 
     const userCounts = labels.map((month) =>
-      TotalOrders.filter((order) => order.createdAt.getMonth() === labels.indexOf(month)).length
+      TotalCheckouts.filter((order) => order.createdAt.getMonth() === labels.indexOf(month)).length
     );
 
 

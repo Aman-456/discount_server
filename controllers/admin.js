@@ -1,5 +1,6 @@
 const Admin = require("../models/admin");
 const Order = require("../models/orders");
+const CheckoutModal = require("../models/checkout");
 const Vendor = require("../models/vendor");
 const customer = require("../models/customer");
 const Contact = require("../models/contact")
@@ -124,7 +125,7 @@ exports.Contact = async (req, res) => {
 };
 exports.Dashboard = async (req, res) => {
   try {
-    const TotalOrders = await Order.find({});
+    const TotalOrders = await CheckoutModal.find({});
     const TotalVendors = await Vendor.find({});
     const TotalCustomers = await customer.find({});
 

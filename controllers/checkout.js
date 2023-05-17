@@ -66,7 +66,6 @@ exports.getCheckout = async (req, res) => {
       },
       {
         $match: {
-          // 'items.vendor': Types.ObjectId(vendorId)
           'items.vendor': new Types.ObjectId(vendorId)
         }
       },
@@ -84,26 +83,58 @@ exports.getCheckout = async (req, res) => {
       {
         $project: {
           _id: 1,
+          customer: 1,
           checkoutId: '$_id',
+          // cus: '$customer',
           item: {
             _id: '$populatedItems._id',
             vendor: '$items.vendor',
             name: '$populatedItems.name',
             image: '$populatedItems.image',
             price: '$populatedItems.price',
-            checkoutId: '$_id'
-          }
+            description: '$populatedItems.description',
+            checkoutId: '$_id',
+          },
         }
       }
     ]);
+    const ids = []
 
-    console.log(items);
-
-
-
+    items.forEach(checkout => {
+      ids.push(checkout.customer)
+    });
+    const populatedCheckouts = await User.find({ _id: { $in: ids } });
+    const newitems = items.map((e, i) => {
+      const find = populatedCheckouts.find(cus => String(cus._id) == String(e.customer))
+      return { ...e, customer: find }
+    })
     res
       .status(200)
-      .json({ result: items, type: "success" });
+      .json({ result: newitems, type: "success" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ type: "An error occurred" });
+  }
+};
+exports.checkoutaccept = async (req, res) => {
+  try {
+    const { vendor } = req.body;
+    const items = await CheckOut.findOne({ 'items.vendor': vendor });
+    const ids = []
+    return res
+      .status(200)
+      .json({ result: newitems, type: "success" });
+    items.forEach(checkout => {
+      ids.push(checkout.customer)
+    });
+    const populatedCheckouts = await User.find({ _id: { $in: ids } });
+    const newitems = items.map((e, i) => {
+      const find = populatedCheckouts.find(cus => String(cus._id) == String(e.customer))
+      return { ...e, customer: find }
+    })
+    res
+      .status(200)
+      .json({ result: newitems, type: "success" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ type: "An error occurred" });
