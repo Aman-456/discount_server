@@ -165,8 +165,7 @@ async function sendEmail(email, user, res) {
         pass: `${process.env.APP_PASS || process.env.EMAIL_PASSWORD}`,
       },
     });
-    // const URL = `https://discountbazar.netlify.app/customer/verify?token=${user._id} `;
-    const host = process.env.HOST !== "localhost" ? `https://${process.env.HOST$}${process.env.PORT || 5000}` : `http://localhost`;
+    const host = process.env.HOST !== "localhost" ? `https://${process.env.HOST}` : `http://localhost:$${process.env.PORT || 5000}`;
     const URL = host;
     readHTMLFile(
       "./templates/orderplaced.html",

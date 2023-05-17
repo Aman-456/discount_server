@@ -137,7 +137,9 @@ exports.Verify = async (req, res) => {
   var user = await Customer.findOne({ _id: Id });
   if (user) {
     if (user.verify == true) {
-      return res.redirect(`${process.env.HOST == "localhost" ? "http://localhost:3000" : "https://discountbazar.netlify.app"}`)
+      const host = process.env.HOST !== "localhost" ? `https://${process.env.HOST$}` : `http://localhost:${process.env.PORT || 5000}`;
+      const URL = host;
+      return res.redirect(host)
     }
     user.verify = true;
     await user.save()
