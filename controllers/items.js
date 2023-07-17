@@ -50,7 +50,7 @@ exports.GetItem = async (req, res) => {
           { name: { $regex: name, $options: 'i' } },
           { _id: { $ne: exist } },
         ]
-      }).populate("vendor", "name onlineStatus")
+      }).populate("vendor", "name onlineStatus longitude latitude companyName").limit(4)
 
       item = item.filter(e => e?.vendor?.onlineStatus === type)
       return res.json({ type: "success", result: item });
@@ -67,6 +67,7 @@ exports.GetItem = async (req, res) => {
 
     res.status(200).json({ type: "success", result: item, relative });
   } catch (error) {
+    console.log(error);
     res
       .status(500)
       .json({ type: "failure", result: error.message || "Server not Responding. Try Again" });

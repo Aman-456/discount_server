@@ -12,10 +12,14 @@ const { Types } = require("mongoose");
 exports.addItem = async (req, res) => {
   try {
     const { customer, items, total, card } = req.body;
-    const user = await User.findOne({ _id: customer })
+    const user = await User.findOne({ _id: customer });
+    const newitems = items.map(e => {
+      const obj = { ...e, vendor: e?.item?.vendor };
+      return obj
+    })
     const newCheckout = new CheckOut({
       customer,
-      items,
+      items: newitems,
       total,
       card
     });
